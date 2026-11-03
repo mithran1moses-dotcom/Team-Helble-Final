@@ -1,0 +1,6 @@
+ticker,bhc_name,bhc_rssd,bank_rssd,bank_name,link_source,checked_by,checked_on,notes
+JPM,JPMorgan Chase & Co.,,,,"NIC (ffiec.gov/npw) + NY Fed CRSP-FRB link",,,low-fragility control; 031 filer (RCFD)
+ZION,Zions Bancorporation,,,,,,,hard-hit regional
+KEY,KeyCorp,,,,,,,large AFS losses
+WAL,Western Alliance Bancorporation,,,,,,,hard-hit regional
+PACW,PacWest Bancorp,,,,,,,merged into Banc of California Nov 2023 -> survivorship test for yfinance

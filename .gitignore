@@ -1,0 +1,19 @@
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+.env
+
+# Raw bulk data: recreate with the steps in inputs/call_reports/README.md
+inputs/call_reports/**/*.txt
+inputs/call_reports/**/*.zip
+inputs/links/raw/
+
+# Intermediate files are rebuilt by the pipeline
+temp/*
+!temp/.gitkeep
+
+# Fake test data (dev/make_fake_call_reports.py)
+inputs/call_reports/FAKE/
+outputs/*FAKE*
