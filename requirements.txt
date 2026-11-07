@@ -2,3 +2,5 @@ pandas>=2.0
 numpy
 yfinance
 statsmodels
+streamlit
+matplotlib
