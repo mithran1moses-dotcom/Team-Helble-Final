@@ -56,6 +56,8 @@ code/                       numbered pipeline steps (run in order)
   02_build_bank_measures.py   call report bulk files → outputs/bank_measures_*.csv (per bank), outputs/bhc_measures_*.csv (per holding company)
   03_download_prices.py       yfinance prices, 12 banks + SPY → inputs/prices/yfinance_prices.csv (committed snapshot)
   04_event_study.py           market model vs SPY → outputs/car_0_2.csv
+  05_build_analysis_sample.py link + measures + CARs → outputs/analysis_sample.csv (12 rows)
+  06_regression.py            regression (HC1) → outputs/regression_main.*, scatter → outputs/figures/
 inputs/
   call_reports/               raw FFIEC bulk files (git-ignored; see README there for provenance)
   links/                      RSSD ↔ ticker links (hand map committed; raw NY Fed file git-ignored)

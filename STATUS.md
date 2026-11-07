@@ -17,7 +17,7 @@ Update this whenever a pipeline step is finished or blocked. Add the date and yo
 | 1 | Link table (`inputs/links/bank_link_v0.csv`) | Built 11/7, awaiting hand-check | 21 bank subsidiaries for 12 BHCs; 2 rows have no NIC name (60143, 212465) |
 | 2 | Call-report measures, holding-company level | Done 11/7 | `outputs/bhc_measures_2022Q4.csv`, 12 BHCs from 19 filing banks; fake-data check passes |
 | 3 | Prices and event study (`car_0_2`) | Partly done 11/7 | `outputs/car_0_2.csv`: 10 of 12 banks; SIVB and CMA wait on CRSP |
-| 4 | Merge and regression | | |
+| 4 | Merge and regression | Done 11/7 (10 of 12 banks) | `outputs/analysis_sample.csv` (12 rows), regression and scatter; re-run after CRSP |
 | 5 | Streamlit dashboard (`app.py`) | | |
 | 6 | `run_all.py` and self-audit | | |
 

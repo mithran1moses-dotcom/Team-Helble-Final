@@ -5,3 +5,5 @@ Add the date and your name. The output file is where the numbers live (always in
 
 | # | Date | Who | Dependent variable | Regressors | Sample | Std. errors | Output file | Result / why kept or dropped |
 |---|---|---|---|---|---|---|---|---|
+| 1 | 2026-11-07 | Mithran (Claude Code) | `car_0_2` | `uninsured_dep_share`, `unreal_loss_to_adj_equity`, `log_total_assets` | v0, 10 of 12 banks (SIVB, CMA missing returns until CRSP arrives) | HC1 robust | `outputs/regression_main.csv`, `outputs/regression_main.txt` | Pipeline check only (N=10, 4 coefficients). Loss ratio coef −0.23 (p=0.53), uninsured share −0.97 (p=0.27), log assets +0.13 (p<0.01), R² 0.72. Kept as main spec; re-run when CRSP returns are added. |
+| 2 | 2026-11-07 | Mithran (Claude Code) | `car_0_2` (chart) | x = `unreal_loss_to_adj_equity`, dot size = `uninsured_dep_share` | same 10 banks | n/a | `outputs/figures/scatter_loss_vs_car.png` | Headline scatter. Kept. |
