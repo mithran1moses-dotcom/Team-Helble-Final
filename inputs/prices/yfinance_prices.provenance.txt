@@ -1,0 +1,6 @@
+Source: Yahoo Finance via yfinance 1.2.0, field 'Adj Close'
+Requested: JPM, BAC, WFC, USB, PNC, TFC, FITB, KEY, ZION, WAL, CMA, SIVB, SPY
+Window: 2022-01-01 to 2023-07-01 (end exclusive)
+Downloaded: 2026-11-07
+Rows: 4125
+Tickers with no data (delisted; use CRSP): CMA, SIVB

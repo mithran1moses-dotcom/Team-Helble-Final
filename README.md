@@ -54,9 +54,12 @@ code/                       numbered pipeline steps (run in order)
   01a_download_nyfed_link.py  NY Fed CRSP-FRB link file → inputs/links/raw/
   01b_build_link_table.py     ticker → holding company → bank subsidiaries (inputs/links/bank_link_v0.csv)
   02_build_bank_measures.py   call report bulk files → outputs/bank_measures_*.csv (per bank), outputs/bhc_measures_*.csv (per holding company)
+  03_download_prices.py       yfinance prices, 12 banks + SPY → inputs/prices/yfinance_prices.csv (committed snapshot)
+  04_event_study.py           market model vs SPY → outputs/car_0_2.csv
 inputs/
   call_reports/               raw FFIEC bulk files (git-ignored; see README there for provenance)
   links/                      RSSD ↔ ticker links (hand map committed; raw NY Fed file git-ignored)
+  prices/                     yfinance snapshot; crsp/ holds CRSP returns for delisted banks (git-ignored, WRDS license)
 temp/                       intermediate files (git-ignored, rebuilt)
 outputs/                    final datasets, tables, figures (every reported number comes from here)
 audits/                     self-audits per checkpoint
@@ -80,7 +83,9 @@ python dev/check_fake_bhc_measures.py   # compares to hand-computed answers
 
 ## Threats to validity (living list)
 
-- **Survivorship:** the most fragile banks (SIVB, SBNY, FRC, PACW) failed or merged, and yfinance may not have their returns.
+- **Survivorship:** the most fragile banks (SIVB, SBNY, FRC, PACW) failed or merged. yfinance has **no** data for SIVB or CMA (Comerica, acquired by Fifth Third), so their returns must come from CRSP (`inputs/prices/crsp/README.md`).
+- **Mixed return sources:** 10 banks use Yahoo adjusted closes, delisted banks use CRSP `RET`. Both include dividends; small differences are possible.
+- **CAR is a sum of simple daily abnormal returns.** For very large moves (WAL fell about 64% over the window) the sum is more negative than the compounded loss; a buy-and-hold abnormal return is a possible robustness check.
 - **SIVB stopped trading on Mar 10, 2023**, so its `car_0_2` covers only day 0 (Mar 9). It is not comparable to the other banks' three-day CARs.
 - **Entity mismatch:** the stock belongs to the holding company, but call reports are filed by the bank subsidiaries. We sum subsidiaries to the holding company using the link table.
 - **RSSD → ticker link quality:** we will report the match rate and hand-check a sample.

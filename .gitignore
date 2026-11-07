@@ -17,3 +17,6 @@ temp/*
 # Fake test data (dev/make_fake_call_reports.py)
 inputs/call_reports/FAKE/
 outputs/*FAKE*
+
+# CRSP data from WRDS: license forbids redistribution
+inputs/prices/crsp/*.csv
