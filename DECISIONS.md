@@ -1,28 +1,63 @@
-# DECISIONS.md — Team Helble
+# Team Helble — v0 Decisions & Changes
 
-Running list of open decisions, settled decisions, and things the report or self-audit must mention.
-Add the date and your name to every entry. Started 2026-11-07 by Mithran.
+Running log of decisions and changes for the Bank Fragility project (Seed 6). Owner of schema: Mithran (A).
 
-## Open — need a team decision
+## Corrected deadlines (from course instructions, updated Nov 5)
 
-1. **Event window.** README says `car_0_5` (Mar 9–16). Plan doc says Mar 9–13. Mar 15 includes the Credit Suisse shock. Pick a main window and a robustness window.
-2. **Day 0.** Mar 9 (first trading reaction) or Mar 10 (seizure)? README says show both.
-3. **Estimation window.** README says it ends before 2023; plan doc says late Feb 2023.
-4. **Loss ratio.** HTM + AFS losses (current code) or HTM only? Which equity denominator, given AFS losses are already in equity?
-5. **v0 sample.** 12 banks (plan doc) or ~100 (README)? Is PACW in?
-6. **Unit of observation.** Holding company (README) vs. bank subsidiary (what the code produces). How to aggregate.
-7. **Column names.** Freeze the final schema; A owns it.
+- **v0 checkpoint + proposal (HW8): Sat Nov 14.** Not Mon Nov 9 / Thu Nov 12 as in the original plan doc.
+- **v1 full-sample results: Sat Nov 21.** Not Nov 19.
+- Working groups to fix audit findings: Tue Nov 24.
+- Presentations: Dec 1 / Dec 3.
+- v0 must include: whole pipeline on a small sample, dashboard skeleton, and `audits/01_self_audit.md`. The proposal is written from the working v0.
 
-## Decided
+## Event window
 
-- Balance-sheet data from the 12/31/2022 call report (no look-ahead).
-- Market model vs. SPY.
+- **No course requirement** on the window. Seed 6 only says "CAR around March 2023".
+- **Decided: main window March 9–13, 2023 = trading days 0 to +2, day 0 = March 9.**
+- Column name: `car_0_2` (replaces the README's `car_0_5`).
+- Reason: captures the run, seizure, Signature closure and backstop; avoids the March 15 Credit Suisse shock; less noise.
+- Longer window (e.g. 0 to +4) can be a robustness check, logged in `specs_tried.md`.
+- Decided for v0: estimation window ends before 2023 (as in the README). Can revisit for v1.
+
+## Sample
+
+- **Decided: 12 banks for v0:** JPM, BAC, WFC, USB, PNC, TFC, FITB, KEY, ZION, WAL, CMA, SIVB.
+- The README says \~100 banks; that is the v1 target, not v0. PACW is not in v0.
+- **Unit of observation: bank holding company.** Collapse subsidiaries: sum dollar amounts across each holding company's bank subsidiaries first, then compute ratios.
+
+## Loss ratio
+
+- **Decided: main measure = (HTM loss + AFS loss) / (total equity + AFS loss).** Follows Jiang, Matvos, Piskorski & Seru (2023).
+- AFS losses are added back to the denominator because they are already deducted from book equity.
+- Robustness: HTM loss only. Column names: main = `unreal_loss_to_adj_equity`; robustness = `htm_loss_to_equity`. CAR column = `car_0_2`.
+- Change needed in `code/02_build_bank_measures.py`: currently divides by plain `total_equity`.
+
+## Dashboard
+
+- **Decided: Streamlit** (`app.py`), not an HTML page. Short Python is easier for every teammate to explain, which the course requires.
+- Four tabs: Introduction, Methodology, Analysis (regression + scatter), Interactive fragility screen.
+- Decided: skip the toy CSV. Mithran (A) takes care of all dashboard work through Saturday, Nov 14, on his own schedule. Risk: the app can't show data until the real merged file exists.
+
+**Instruction for the coding agent (Claude Code):** the repo will be audited and every teammate must explain every step. Keep code short and plain Python, one clear purpose per section, a comment above each block saying what it does and why, no clever tricks or unused code. After each section, summarize in plain English what was built.
+
+## Data work
+
+- **Decided: Mithran builds the fundamentals data (link table, call reports, ratios) and the returns data (prices, event study) himself, with a coding agent.**
+- Builds on the existing `code/02_build_bank_measures.py`.
+- Teammates still need to be able to explain this code for the audit.
+
+## Changes needed in repo
+
+- README: rename `car_0_5` to `car_0_2`, update window definition, sample size for v0, loss-ratio denominator.
+- `02_build_bank_measures.py`: adjust denominator; add holding-company aggregation; add HTM-only ratio.
+- Add `DECISIONS.md` (this doc) and `CLAUDE.md` (agent instructions, "Mithran Moses, 11/7" at the top, tells the agent to read `DECISIONS.md` first) to the repo root. Add required files the course lists: `run_all.py` (or README run steps), `specs_tried.md`, `STATUS.md`, `audits/01_self_audit.md`.
 
 ## For the report / self-audit
 
 - Convenience sample chosen knowing the outcome; v1 uses all listed banks.
-- Survivorship: SIVB, SBNY, FRC, PACW failed or merged; yfinance may lack their data.
+- Survivorship: SIVB, SBNY, FRC, PACW failed or merged.
 - SIVB stopped trading Mar 10, so its CAR covers only day 0.
-- Uninsured deposits only reported by banks with assets of at least $1B.
-- Illiquid small banks have noisy returns; size and liquidity filters are logged.
-- Link quality: report the match rate and hand-checked sample.
+- Uninsured deposits only reported by banks with at least $1B in assets.
+- Window choice justified against news timeline; Credit Suisse on Mar 15.
+- Loss-ratio choice and double-counting adjustment.
+- Holding company vs. subsidiary aggregation method.
