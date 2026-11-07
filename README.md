@@ -50,6 +50,7 @@ DECISIONS.md                team decisions (source of truth)
 CLAUDE.md                   instructions for coding agents
 STATUS.md                   where the project stands
 specs_tried.md              log of every regression spec run
+run_all.py                  rebuilds every output in order (python run_all.py)
 code/                       numbered pipeline steps (run in order)
   01a_download_nyfed_link.py  NY Fed CRSP-FRB link file → inputs/links/raw/
   01b_build_link_table.py     ticker → holding company → bank subsidiaries (inputs/links/bank_link_v0.csv)
@@ -73,11 +74,24 @@ dev/                        scratch work and test helpers (not part of the pipel
 
 ```bash
 pip install -r requirements.txt
-# 1. Download the Q4 2022 call reports (see inputs/call_reports/README.md)
-python code/02_build_bank_measures.py 2022Q4 12312022
 ```
 
-To test without real data:
+1. Download the manual inputs: the 12/31/2022 call reports (`inputs/call_reports/README.md`), the FFIEC NIC files (`inputs/links/README.md`) and, when available, CRSP returns for SIVB and CMA (`inputs/prices/crsp/README.md`).
+2. Rebuild every output, fake-data test first:
+
+```bash
+python run_all.py
+```
+
+Add `--download` to re-fetch the NY Fed link file and Yahoo prices and rebuild the link table first (this overwrites the committed price snapshot).
+
+3. Open the dashboard:
+
+```bash
+streamlit run app.py
+```
+
+To test the measures code alone without real data:
 ```bash
 python dev/make_fake_call_reports.py
 python code/02_build_bank_measures.py FAKE 12312022
