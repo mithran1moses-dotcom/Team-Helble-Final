@@ -2,7 +2,7 @@
 
 **Team Helble** · Final project (Seed 6)
 
-> **Dashboard:** _link TBD_ · **Dashboard repo:** _link TBD_
+> **Dashboard:** run locally with `streamlit run app.py` (reads only `outputs/`) · hosted link TBD
 
 ## Question
 
@@ -65,6 +65,7 @@ inputs/
 temp/                       intermediate files (git-ignored, rebuilt)
 outputs/                    final datasets, tables, figures (every reported number comes from here)
 audits/                     self-audits per checkpoint
+app.py                      Streamlit dashboard: Introduction, Methodology, Analysis, Interactive fragility screen
 dev/                        scratch work and test helpers (not part of the pipeline)
 ```
 

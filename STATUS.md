@@ -18,7 +18,7 @@ Update this whenever a pipeline step is finished or blocked. Add the date and yo
 | 2 | Call-report measures, holding-company level | Done 11/7 | `outputs/bhc_measures_2022Q4.csv`, 12 BHCs from 19 filing banks; fake-data check passes |
 | 3 | Prices and event study (`car_0_2`) | Partly done 11/7 | `outputs/car_0_2.csv`: 10 of 12 banks; SIVB and CMA wait on CRSP |
 | 4 | Merge and regression | Done 11/7 (10 of 12 banks) | `outputs/analysis_sample.csv` (12 rows), regression and scatter; re-run after CRSP |
-| 5 | Streamlit dashboard (`app.py`) | | |
+| 5 | Streamlit dashboard (`app.py`) | Done 11/7 | 4 tabs, reads only outputs/; checked all tabs and the screen filters in a browser |
 | 6 | `run_all.py` and self-audit | | |
 
 ## Blocked / waiting on
