@@ -1,15 +1,19 @@
 """
 02_build_bank_measures.py
 
-Builds one row per bank (IDRSSD) of the fragility measures from a single
-quarter of FFIEC Call Report bulk data.
+Builds the fragility measures from one quarter of FFIEC Call Report bulk data,
+first for every bank, then for each v0 bank holding company (BHC) by summing
+its bank subsidiaries.
 
-Input : inputs/call_reports/<PERIOD>/  (see inputs/call_reports/README.md)
-Output: outputs/bank_measures_<PERIOD>.csv
+Inputs : inputs/call_reports/<LABEL>/        (see inputs/call_reports/README.md)
+         inputs/links/bank_link_v0.csv       (code/01b_build_link_table.py)
+         For LABEL = FAKE, the fake link file written by dev/make_fake_call_reports.py.
+Outputs: outputs/bank_measures_<LABEL>.csv   one row per bank (bank_rssd)
+         outputs/bhc_measures_<LABEL>.csv    one row per holding company (bhc_rssd)
 
 Usage:
     python code/02_build_bank_measures.py                 # defaults to 2022Q4 / 12312022
-    python code/02_build_bank_measures.py 2026Q2 06302026  # the "today" screen
+    python code/02_build_bank_measures.py FAKE 12312022   # test on fake data
 
 Measures (all from Schedules RC, RC-B, RC-O, in $ thousands as reported):
     total_assets         2170   (RC)
@@ -22,11 +26,17 @@ Measures (all from Schedules RC, RC-B, RC-O, in $ thousands as reported):
     afs_amortized_cost   1772   (RC-B)
     afs_fair_value       1773   (RC-B)
 
-    htm_loss             = htm_amortized_cost - htm_fair_value  (positive = loss)
-    afs_loss             = afs_amortized_cost - afs_fair_value  (positive = loss)
-    unreal_loss          = htm_loss + afs_loss
-    unreal_loss_to_equity
-    uninsured_dep_share  = uninsured_deposits / total_deposits
+    htm_loss                  = htm_amortized_cost - htm_fair_value  (positive = loss)
+    afs_loss                  = afs_amortized_cost - afs_fair_value  (positive = loss)
+    unreal_loss               = htm_loss + afs_loss
+    unreal_loss_to_adj_equity = unreal_loss / (total_equity + afs_loss)   MAIN measure
+                                (AFS losses are already deducted from equity, so we add them back;
+                                 Jiang, Matvos, Piskorski & Seru 2023)
+    htm_loss_to_equity        = htm_loss / total_equity                   robustness
+    uninsured_dep_share       = uninsured_deposits / total_deposits
+
+Holding-company rule (DECISIONS.md): sum the dollar amounts across a BHC's
+banks first, then compute the ratios from the sums.
 
 VERIFY every MDRM code against the FFIEC data dictionary / report form
 instructions for the period you pulled before trusting the output.
@@ -58,6 +68,7 @@ FIELDS: dict[str, tuple[list[str], str]] = {
     "afs_amortized_cost": (["RCFD1772", "RCON1772"], "RCB"),
     "afs_fair_value":     (["RCFD1773", "RCON1773"], "RCB"),
 }
+DOLLAR_COLS = list(FIELDS)  # the amounts we sum to the holding company
 
 
 def read_bulk_file(path: Path) -> pd.DataFrame:
@@ -106,7 +117,7 @@ def read_por(folder: Path, period: str) -> pd.DataFrame:
         raise FileNotFoundError(f"No POR file for {period} in {folder}")
     por = read_bulk_file(parts[0])
     keep = {
-        "IDRSSD": "rssd_id",
+        "IDRSSD": "bank_rssd",
         "Financial Institution Name": "bank_name",
         "FDIC Certificate Number": "fdic_cert",
         "Financial Institution State": "state",
@@ -130,32 +141,77 @@ def pick_first_available(df: pd.DataFrame, codes: list[str]) -> pd.Series:
     return result
 
 
+def add_ratios(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute losses and ratios from the dollar amounts.
+
+    Used for both banks and holding companies, so both levels use one formula.
+    A missing HTM or AFS amount is treated as no securities of that type (0 loss).
+    Denominators that are zero or negative give NaN instead of a misleading ratio.
+    """
+    df["htm_loss"] = df["htm_amortized_cost"] - df["htm_fair_value"]
+    df["afs_loss"] = df["afs_amortized_cost"] - df["afs_fair_value"]
+    htm = df["htm_loss"].fillna(0)
+    afs = df["afs_loss"].fillna(0)
+    df["unreal_loss"] = htm + afs
+
+    adj_equity = df["total_equity"] + afs
+    df["unreal_loss_to_adj_equity"] = df["unreal_loss"] / adj_equity.where(adj_equity > 0)
+    df["htm_loss_to_equity"] = htm / df["total_equity"].where(df["total_equity"] > 0)
+    df["uninsured_dep_share"] = df["uninsured_deposits"] / df["total_deposits"].where(df["total_deposits"] > 0)
+    return df
+
+
 def build_measures(folder: Path, period: str) -> pd.DataFrame:
+    """One row per bank: the raw dollar amounts plus the ratios."""
     schedules = sorted({sched for _, sched in FIELDS.values()})
     raw = {s: read_schedule(folder, s, period) for s in schedules}
 
     out = read_por(folder, period)
-    assert out["rssd_id"].is_unique
+    assert out["bank_rssd"].is_unique
 
     for var, (codes, sched) in FIELDS.items():
         src = raw[sched]
         found = [c for c in codes if c in src.columns]
         if not found:
             raise KeyError(f"{var}: none of {codes} found in schedule {sched}")
-        col = pd.DataFrame({"rssd_id": src["IDRSSD"],
+        col = pd.DataFrame({"bank_rssd": src["IDRSSD"],
                             var: pick_first_available(src, codes)})
-        out = out.merge(col, on="rssd_id", how="left", validate="1:1")
+        out = out.merge(col, on="bank_rssd", how="left", validate="1:1")
 
-    # Derived measures
-    out["htm_loss"] = out["htm_amortized_cost"] - out["htm_fair_value"]
-    out["afs_loss"] = out["afs_amortized_cost"] - out["afs_fair_value"]
-    out["unreal_loss"] = out["htm_loss"].fillna(0) + out["afs_loss"].fillna(0)
-    out["unreal_loss_to_equity"] = out["unreal_loss"] / out["total_equity"].where(out["total_equity"] > 0)
-    out["uninsured_dep_share"] = out["uninsured_deposits"] / out["total_deposits"].where(out["total_deposits"] > 0)
+    out = add_ratios(out)
     out["report_period"] = period
 
-    assert out["rssd_id"].is_unique
+    assert out["bank_rssd"].is_unique
     return out
+
+
+def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str) -> pd.DataFrame:
+    """One row per holding company: sum its banks' dollar amounts, then compute ratios."""
+    # Attach each linked bank's call report numbers. A linked bank that does not
+    # file a call report (e.g. a non-insured-deposit trust company) is reported and dropped.
+    link = link[["ticker", "bhc_name", "bhc_rssd", "bank_rssd"]]
+    merged = link.merge(banks, on="bank_rssd", how="left", validate="1:1", indicator=True)
+    not_filing = merged[merged["_merge"] == "left_only"]
+    if len(not_filing):
+        print("  Linked banks with no call report (dropped):")
+        print(not_filing[["ticker", "bank_rssd"]].to_string(index=False))
+    merged = merged[merged["_merge"] == "both"]
+
+    # Count banks behind each holding company, and how many report uninsured deposits.
+    # min_count=1 keeps the sum missing when none of a BHC's banks reports a value.
+    bhc = merged.groupby(["bhc_rssd", "ticker", "bhc_name"], as_index=False).agg(
+        n_banks=("bank_rssd", "count"),
+        n_banks_uninsured_reported=("uninsured_deposits", "count"),
+    )
+    sums = merged.groupby("bhc_rssd")[DOLLAR_COLS].sum(min_count=1).reset_index()
+    bhc = bhc.merge(sums, on="bhc_rssd", how="left", validate="1:1")
+
+    bhc = add_ratios(bhc)
+    bhc["report_period"] = period
+
+    assert bhc["bhc_rssd"].is_unique and bhc["ticker"].is_unique
+    assert set(bhc["ticker"]) == set(link["ticker"]), "a holding company lost all its banks"
+    return bhc
 
 
 def main() -> None:
@@ -163,15 +219,28 @@ def main() -> None:
     period = sys.argv[2] if len(sys.argv) > 2 else "12312022"
     folder = ROOT / "inputs" / "call_reports" / label
 
-    df = build_measures(folder, period)
+    # Bank level: every bank in the call report data.
+    banks = build_measures(folder, period)
+    bank_path = ROOT / "outputs" / f"bank_measures_{label}.csv"
+    bank_path.parent.mkdir(parents=True, exist_ok=True)
+    banks.to_csv(bank_path, index=False)
+    print(f"Wrote {bank_path.relative_to(ROOT)}: {len(banks):,} banks")
+    print(f"  with uninsured deposits reported: {banks['uninsured_deposits'].notna().sum():,}")
 
-    out_path = ROOT / "outputs" / f"bank_measures_{label}.csv"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(out_path, index=False)
+    # Holding-company level: the v0 banks, via the link table.
+    if label == "FAKE":
+        link_path = folder / "bank_link_FAKE.csv"
+    else:
+        link_path = ROOT / "inputs" / "links" / "bank_link_v0.csv"
+    link = pd.read_csv(link_path)
+    assert link["bank_rssd"].is_unique
 
-    print(f"Wrote {out_path.relative_to(ROOT)}: {len(df):,} banks")
-    print(f"  with uninsured deposits reported: {df['uninsured_deposits'].notna().sum():,}")
-    print(df[["uninsured_dep_share", "unreal_loss_to_equity"]].describe().round(3))
+    bhc = aggregate_to_bhc(banks, link, period)
+    bhc_path = ROOT / "outputs" / f"bhc_measures_{label}.csv"
+    bhc.to_csv(bhc_path, index=False)
+    print(f"Wrote {bhc_path.relative_to(ROOT)}: {len(bhc)} holding companies")
+    print(bhc[["ticker", "n_banks", "total_assets", "uninsured_dep_share",
+               "unreal_loss_to_adj_equity", "htm_loss_to_equity"]].round(3).to_string(index=False))
 
 
 if __name__ == "__main__":

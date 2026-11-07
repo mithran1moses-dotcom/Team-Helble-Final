@@ -53,7 +53,7 @@ specs_tried.md              log of every regression spec run
 code/                       numbered pipeline steps (run in order)
   01a_download_nyfed_link.py  NY Fed CRSP-FRB link file → inputs/links/raw/
   01b_build_link_table.py     ticker → holding company → bank subsidiaries (inputs/links/bank_link_v0.csv)
-  02_build_bank_measures.py   call report bulk files → one row per bank, then per holding company
+  02_build_bank_measures.py   call report bulk files → outputs/bank_measures_*.csv (per bank), outputs/bhc_measures_*.csv (per holding company)
 inputs/
   call_reports/               raw FFIEC bulk files (git-ignored; see README there for provenance)
   links/                      RSSD ↔ ticker links (hand map committed; raw NY Fed file git-ignored)
@@ -75,6 +75,7 @@ To test without real data:
 ```bash
 python dev/make_fake_call_reports.py
 python code/02_build_bank_measures.py FAKE 12312022
+python dev/check_fake_bhc_measures.py   # compares to hand-computed answers
 ```
 
 ## Threats to validity (living list)

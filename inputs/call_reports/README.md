@@ -17,7 +17,7 @@ For the "today" fragility screen, repeat with the latest available quarter into 
 
 | Period | Downloaded on | By | Notes |
 |---|---|---|---|
-| 12/31/2022 | YYYY-MM-DD | name | |
+| 12/31/2022 | 2026-11-07 | Mithran (via Claude in Chrome) | `FFIEC CDR Call Bulk All Schedules 12312022.zip`, 51 files, CDR data as of 2026-09-15. RC-O now comes in 2 parts. |
 
 **Format notes:**
 - One file per schedule; big schedules are split into parts, e.g. `(1 of 2)`, `(2 of 2)`.

@@ -63,4 +63,14 @@ write(f"FFIEC CDR Call Schedule RCO {P}.txt",
       ["", "ESTIMATED AMOUNT OF UNINSURED DEPOSITS"],
       [[1, 900000], [2, 150000], [3, ""]])
 
+# Fake link table: holding company 100 (ticker FAKEA) owns banks 1 and 2, so its
+# numbers are sums. Holding company 200 (FAKEB) owns bank 3 plus bank 4, which
+# files no call report, to test that a non-filing bank is reported and dropped.
+(OUT / "bank_link_FAKE.csv").write_text(
+    "ticker,bhc_name,bhc_rssd,bank_rssd,bank_name\n"
+    "FAKEA,FAKE HOLDING A,100,1,FAKE BIG BANK NA\n"
+    "FAKEA,FAKE HOLDING A,100,2,FAKE REGIONAL BANK\n"
+    "FAKEB,FAKE HOLDING B,200,3,FAKE COMMUNITY BANK\n"
+    "FAKEB,FAKE HOLDING B,200,4,FAKE TRUST CO (NO CALL REPORT)\n")
+
 print(f"Wrote fake files to {OUT.relative_to(ROOT)}")
