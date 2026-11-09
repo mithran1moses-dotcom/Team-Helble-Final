@@ -18,8 +18,8 @@ Each answer points to the file that backs it up. **Status** is one of: OK, LIMIT
 | Item | Status | Evidence |
 |---|---|---|
 | Call reports are from 12/31/2022, the last quarter before SVB failed (no look-ahead) | OK | `inputs/call_reports/README.md` pull log; `report_period` column in `outputs/bhc_measures_2022Q4.csv` |
-| Every raw file has a source and download date | OK | pull logs in `inputs/call_reports/README.md`, `inputs/links/README.md`; `inputs/prices/yfinance_prices.provenance.txt` |
-| Yahoo prices are a committed snapshot (Yahoo revises adjusted prices) | OK | `inputs/prices/yfinance_prices.csv` |
+| Every raw file has a source and download date | OK | pull logs in `inputs/call_reports/README.md`, `inputs/links/README.md`; `inputs/prices/crsp/crsp_pull.provenance.txt` |
+| **Stock returns: CRSP via WRDS for all 12 banks and SPY** (switched from yfinance on 11/9 for one consistent source that includes delisted banks). Raw pulls are git-ignored (WRDS license); git history checked on 11/9: no raw CRSP data was ever committed. | OK | `inputs/prices/crsp/crsp_pull.provenance.txt` (source, tables `crsp.stocknames`, `crsp.dsf`, `crsp.dsedelist`, date pulled); `.gitignore`; `DECISIONS.md` "Data source" |
 | MDRM codes (2170, 3210, 2200, 5597, 1754, 1771, 1772, 1773) checked against the FFIEC data dictionary for 12/31/2022 | **OPEN** | Not yet checked by a person. Spot check: SVB's HTM loss ($15.2B), BAC's ($108.6B) and WFC's ($41.6B) in `outputs/bank_measures_2022Q4.csv` match widely reported figures. |
 
 ## 2. Sample
@@ -27,9 +27,9 @@ Each answer points to the file that backs it up. **Status** is one of: OK, LIMIT
 | Item | Status | Evidence |
 |---|---|---|
 | **Convenience sample chosen knowing the outcome.** The 12 v0 banks were picked after the fact. v1 uses all listed banks. | LIMITATION | `inputs/links/v0_banks.csv`; README threats list |
-| **Survivorship.** SIVB, SBNY, FRC, PACW failed or merged; Comerica (CMA) was acquired by Fifth Third. Yahoo has **no** data for SIVB or CMA. | **OPEN** | `inputs/prices/yfinance_prices.provenance.txt`; `outputs/car_0_2.csv` (blank CAR for both). Fix: CRSP export, steps in `inputs/prices/crsp/README.md`. |
+| **Survivorship.** SIVB, SBNY, FRC, PACW failed or merged; Comerica (CMA) was acquired by Fifth Third. Yahoo had no data for SIVB or CMA; both are now included through CRSP, which keeps delisted stocks. | OK (fixed 11/9) | `outputs/car_0_2.csv` (12 rows, source = CRSP) |
 | Exactly 12 holding companies, unique `bhc_rssd` | OK | asserted in `code/05_build_analysis_sample.py`; `outputs/analysis_sample.csv` |
-| Regression uses 10 of 12 banks until CRSP arrives | LIMITATION | `banks_used` column in `outputs/regression_main.csv` |
+| Regression uses all 12 banks (asserted in `code/06_regression.py`) | OK | `n_obs` and `banks_used` in `outputs/regression_main.csv`; `specs_tried.md` #3 (10-bank run kept as #1) |
 
 ## 3. Measures
 
@@ -46,15 +46,17 @@ Each answer points to the file that backs it up. **Status** is one of: OK, LIMIT
 |---|---|---|
 | **Window choice justified against the news timeline.** Days 0 to +2 = Mar 9, 10, 13, 2023: SVB's crash, its seizure, and the Signature closure and backstop. Ends before the Credit Suisse shock on Mar 15. | OK | `DECISIONS.md`; README; `EVENT_DAYS` in `code/04_event_study.py` (asserted to be trading days) |
 | Market model vs SPY, estimated on calendar 2022 only (ends before 2023) | OK | `code/04_event_study.py`; `n_est_days` = 250 in `outputs/car_0_2.csv` |
-| **SIVB stopped trading Mar 10, so its CAR covers only day 0.** | OK (handled), LIMITATION (comparability) | `n_event_days` and `note` columns in `outputs/car_0_2.csv`; tested with a throwaway fake CRSP file |
+| **SIVB stopped trading after Mar 9, so its CAR covers only day 0.** CRSP lists a Mar 10 return (−62.9%) but its price is negative, meaning a bid/ask quote with no trade; all no-trade days are dropped (only this one row). | OK (handled), LIMITATION (comparability) | `n_event_days` and `note` columns in `outputs/car_0_2.csv`; no-trade filter in `code/04_event_study.py`; `DECISIONS.md` "Data source" |
 | CAR is a sum of simple daily abnormal returns; for very large moves (WAL) it is more negative than the compounded loss | LIMITATION | README threats list; buy-and-hold CAR is a possible robustness check |
-| Two return sources (Yahoo adjusted close; CRSP `RET` for delisted banks), both include dividends | LIMITATION | `return_source` column in `outputs/car_0_2.csv` |
+| **PERMNO matching.** Banks are matched ticker → NY Fed PERMCO → CRSP common-share PERMNO (share code 10/11), never by ticker; SPY fixed as PERMNO 84398 and checked. Exactly one PERMNO per bank is asserted. | OK | `code/03_download_crsp.py`; PERMNOs listed in `inputs/prices/crsp/crsp_pull.provenance.txt` and `permno` column of `outputs/car_0_2.csv` |
+| **Delisting returns** from `crsp.dsedelist` are compounded into the return on the delisting date. SIVB's record (Mar 10, 2023, code 584) has no delisting return, so nothing is added; the other banks are still listed. | OK | `code/04_event_study.py`; `inputs/prices/crsp/crsp_delist.csv` (git-ignored) |
+| One return source: CRSP `ret` (includes dividends) for all banks and SPY | OK | `source` column in `outputs/car_0_2.csv` |
 
 ## 5. Merges and keys
 
 | Item | Status | Evidence |
 |---|---|---|
-| Every merge uses `validate=` and keys are asserted unique | OK | `code/01b`, `02`, `04`, `05` |
+| Every merge uses `validate=` and keys are asserted unique | OK | `code/01b`, `02`, `03`, `04`, `05` |
 | **Link quality: match rate and hand-checked sample.** 12 of 12 tickers matched by name to the NY Fed file; 21 linked banks, of which 19 file call reports (the 2 trust companies without a call report are printed and dropped). Rows hand-checked: **0 of 21**. | **OPEN** | `inputs/links/bank_link_v0.csv` (`checked_by` blank); output of `code/02_build_bank_measures.py` |
 | Two linked banks have no NIC record; identified from the call report filer list as Comerica Bank (60143) and MUFG Union Bank (212465, owned by USB 12/1/2022 to 5/26/2023) | OK, needs hand-check | `outputs/bank_measures_2022Q4.csv` |
 | Zions is a bank with no holding company (`bhc_rssd` = `bank_rssd`) | OK | note on ZION row of `inputs/links/bank_link_v0.csv` |
@@ -70,14 +72,14 @@ Kept as a living list in `README.md` ("Threats to validity"). Every item above m
 |---|---|---|
 | One command rebuilds every output from the inputs | OK | `python run_all.py`. On 2026-11-07 a full rerun reproduced every committed output byte for byte, except the clock time printed inside `outputs/regression_main.txt`. |
 | Fake-data test runs before real data | OK | first steps of `run_all.py` |
-| Manual downloads documented step by step | OK | READMEs in `inputs/call_reports/`, `inputs/links/`, `inputs/prices/crsp/` |
+| Manual downloads documented step by step | OK | READMEs in `inputs/call_reports/`, `inputs/links/`; CRSP pull is scripted and needs a WRDS login (`inputs/prices/crsp/README.md`) |
 | Every number in the dashboard comes from `outputs/` and names its file | OK | `app.py` |
-| Specs logged | OK | `specs_tried.md` (2 entries) |
+| Specs logged | OK | `specs_tried.md` (4 entries) |
 
 ## 8. Open issues (before the v0 deadline, Sat Nov 14)
 
-1. **CRSP returns for SIVB and CMA.** Blocked on WRDS access. Then rerun `python run_all.py`.
+1. ~~CRSP returns for SIVB and CMA.~~ Done 11/9: all returns from CRSP via WRDS.
 2. **Hand-check all 21 link-table rows** and fill `checked_by`, `checked_on`.
 3. **Verify MDRM codes** against the FFIEC data dictionary for 12/31/2022.
 4. **Team decision on AFS-to-HTM transfer losses** (fix in v1, or document as a limitation).
-5. Re-run the regression and update `specs_tried.md` once SIVB and CMA are in.
+5. ~~Re-run the regression and update `specs_tried.md` once SIVB and CMA are in.~~ Done 11/9 (`specs_tried.md` #3).

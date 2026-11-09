@@ -18,5 +18,9 @@ temp/*
 inputs/call_reports/FAKE/
 outputs/*FAKE*
 
-# CRSP data from WRDS: license forbids redistribution
-inputs/prices/crsp/*.csv
+# CRSP data from WRDS: the license forbids redistribution. Ignore every raw pull in
+# any format; commit only the README and the provenance note. Only derived results
+# (CARs, regression) go in outputs/.
+inputs/prices/crsp/*
+!inputs/prices/crsp/README.md
+!inputs/prices/crsp/crsp_pull.provenance.txt

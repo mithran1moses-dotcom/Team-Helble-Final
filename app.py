@@ -19,14 +19,13 @@ sample = pd.read_csv(OUT / "analysis_sample.csv")
 regression = pd.read_csv(OUT / "regression_main.csv")
 scatter_png = OUT / "figures" / "scatter_loss_vs_car.png"
 
-# Banks still missing a CAR (delisted, waiting on CRSP) get a warning on every tab.
-missing_car = sample.loc[sample["car_0_2"].isna(), "ticker"].tolist()
-
 st.title("Bank fragility: SVB, and who's next")
 st.caption("Team Helble · Fin 331 final project · v0 (12 banks)")
+
+# All 12 banks have CRSP returns. If a rebuild ever leaves a CAR blank, say so loudly.
+missing_car = sample.loc[sample["car_0_2"].isna(), "ticker"].tolist()
 if missing_car:
-    st.warning(f"No stock returns yet for {', '.join(missing_car)} (delisted; CRSP data pending). "
-               "They are left out of the regression and chart.")
+    st.error(f"Missing car_0_2 for {', '.join(missing_car)}: rerun the pipeline (python run_all.py).")
 
 intro, method, analysis, screen = st.tabs(
     ["Introduction", "Methodology", "Analysis", "Interactive fragility screen"])
@@ -60,7 +59,10 @@ with method:
         "- **Which banks belong to which company:** NY Fed CRSP-FRB link file and FFIEC NIC "
         "ownership data. Each holding company's bank subsidiaries are **summed first**, then the "
         "ratios are computed.\n"
-        "- **Stock prices:** Yahoo Finance; CRSP for delisted banks.")
+        "- **Stock returns:** CRSP daily stock file via WRDS for all 12 banks and SPY "
+        "(returns include dividends; delisting returns included where they apply). Banks are matched "
+        "by CRSP PERMNO, not ticker, so delisted banks (SVB, Comerica) are included. "
+        "Rebuilding needs a WRDS login; raw CRSP data is licensed and not shared.")
 
     st.header("Measures")
     st.markdown(
@@ -76,7 +78,8 @@ with method:
         "- **Abnormal return** = actual return − predicted return.\n"
         "- **CAR (days 0 to +2)** = sum of abnormal returns on Mar 9, 10 and 13, 2023. The window "
         "ends before the Credit Suisse shock on Mar 15.\n"
-        "- SVB stopped trading on Mar 10, so its CAR covers only Mar 9.")
+        "- SVB stopped trading after Mar 9 (halted Mar 10, then seized), so its CAR covers only "
+        "Mar 9. CRSP's Mar 10 figure is a quote with no trade, so it is left out.")
 
     st.header("Regression")
     st.latex(r"CAR_i = a + b_1\,\text{uninsured share}_i + b_2\,\text{loss ratio}_i "
@@ -128,4 +131,4 @@ with screen:
         columns={v: k for k, v in columns.items()} | {"ticker": "Ticker", "bhc_name": "Holding company"})
     st.write(f"{len(shown)} of {len(sample)} banks match.")
     st.dataframe(table.round(3), hide_index=True, width="stretch")
-    st.caption("Source: outputs/analysis_sample.csv. A blank CAR means no return data yet.")
+    st.caption("Source: outputs/analysis_sample.csv. SIVB's CAR covers day 0 only.")

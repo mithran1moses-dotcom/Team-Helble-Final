@@ -32,6 +32,16 @@ Running log of decisions and changes for the Bank Fragility project (Seed 6). Ow
 - Robustness: HTM loss only. Column names: main = `unreal_loss_to_adj_equity`; robustness = `htm_loss_to_equity`. CAR column = `car_0_2`.
 - Change needed in `code/02_build_bank_measures.py`: currently divides by plain `total_equity`.
 
+## Data source
+
+- **Decided (Nov 9): stock returns now come from CRSP via WRDS for all 12 banks and SPY, replacing yfinance.** Reasons: consistency (one source for every bank) and to include delisted banks (SIVB, CMA), which Yahoo does not have.
+- SPY stays the market benchmark, now also pulled from CRSP (PERMNO 84398).
+- Banks are matched by **PERMNO via the PERMCO** in the NY Fed CRSP-FRB link file, never by ticker (delisted tickers can be reused).
+- CRSP delisting returns are included where they apply. SIVB's delisting record (Mar 10, 2023) has no delisting return, so none is added.
+- **Decided (Nov 9): days with no trade (CRSP price < 0, a bid/ask quote) are dropped.** This removes SIVB's quote-based Mar 10 return (−62.9%), so SIVB's CAR covers day 0 only.
+- Rebuilding the returns needs a WRDS login (`code/03_download_crsp.py`). Raw CRSP files are git-ignored (license); only derived results go in `outputs/`.
+- The old yfinance script is kept in `dev/` for reference only.
+
 ## Dashboard
 
 - **Decided: Streamlit** (`app.py`), not an HTML page. Short Python is easier for every teammate to explain, which the course requires.
