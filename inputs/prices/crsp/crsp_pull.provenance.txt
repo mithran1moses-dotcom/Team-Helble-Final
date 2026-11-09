@@ -1,0 +1,7 @@
+Source: CRSP via WRDS (PostgreSQL), Python package wrds 3.5.0
+Tables: crsp.stocknames, crsp.dsf, crsp.dsedelist
+Window: 2022-01-01 to 2023-06-30
+Pulled: 2026-11-09
+PERMCO source: inputs/links/raw/crsp_20240930v2.csv (links valid on 20221231)
+PERMNOs: JPM=47896, BAC=59408, WFC=38703, USB=66157, PNC=60442, TFC=71563, FITB=34746, KEY=64995, ZION=84129, WAL=90776, CMA=25081, SIVB=11786, SPY=84398
+Rows: crsp.dsf 4798, crsp.dsedelist 13, crsp.stocknames 14
