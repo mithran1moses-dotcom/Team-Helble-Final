@@ -30,8 +30,8 @@ sample = bhcs.merge(measures, on="bhc_rssd", how="left", validate="1:1", suffixe
 assert (sample["ticker"] == sample["ticker_measures"]).all()
 sample = sample.drop(columns=["ticker_measures"])
 
-# 3. Add the event-study results by ticker. Every ticker has a row in car_0_2.csv,
-#    even when its CAR is missing (delisted banks waiting on CRSP).
+# 3. Add the event-study results by ticker. All 12 come from CRSP and every one
+#    must have a CAR (SIVB's covers day 0 only; see its note).
 car = pd.read_csv(OUT / "car_0_2.csv")
 car = car.rename(columns={"note": "car_note", "source": "return_source"})
 sample = sample.merge(car, on="ticker", how="left", validate="1:1")
@@ -39,9 +39,11 @@ sample = sample.merge(car, on="ticker", how="left", validate="1:1")
 # 4. Log of total assets, the size control in the regression ($ thousands as reported).
 sample["log_total_assets"] = np.log(sample["total_assets"])
 
-# 5. Checks required by the team: exactly 12 rows, one per holding company.
+# 5. Checks required by the team: exactly 12 rows, one per holding company,
+#    and every bank has a CAR.
 assert len(sample) == 12
 assert sample["bhc_rssd"].is_unique
+assert sample["car_0_2"].notna().all(), sample.loc[sample["car_0_2"].isna(), "ticker"].tolist()
 
 sample = sample.sort_values("ticker").reset_index(drop=True)
 sample.to_csv(OUT / "analysis_sample.csv", index=False)

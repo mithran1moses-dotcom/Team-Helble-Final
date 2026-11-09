@@ -1,26 +1,26 @@
                             OLS Regression Results                            
 ==============================================================================
-Dep. Variable:                car_0_2   R-squared:                       0.715
-Model:                            OLS   Adj. R-squared:                  0.573
-Method:                 Least Squares   F-statistic:                     7.800
-Date:                Sat, 07 Nov 2026   Prob (F-statistic):             0.0171
-Time:                        14:49:36   Log-Likelihood:                 7.9798
-No. Observations:                  10   AIC:                            -7.960
-Df Residuals:                       6   BIC:                            -6.749
+Dep. Variable:                car_0_2   R-squared:                       0.733
+Model:                            OLS   Adj. R-squared:                  0.633
+Method:                 Least Squares   F-statistic:                     42.32
+Date:                Mon, 09 Nov 2026   Prob (F-statistic):           2.97e-05
+Time:                        10:27:11   Log-Likelihood:                 9.6452
+No. Observations:                  12   AIC:                            -11.29
+Df Residuals:                       8   BIC:                            -9.351
 Df Model:                           3                                         
 Covariance Type:                  HC1                                         
 =============================================================================================
                                 coef    std err          z      P>|z|      [0.025      0.975]
 ---------------------------------------------------------------------------------------------
-Intercept                    -2.2233      0.722     -3.080      0.002      -3.638      -0.808
-uninsured_dep_share          -0.9723      0.884     -1.100      0.271      -2.704       0.759
-unreal_loss_to_adj_equity    -0.2318      0.367     -0.632      0.528      -0.951       0.488
-log_total_assets              0.1266      0.034      3.681      0.000       0.059       0.194
+Intercept                    -2.3247      0.578     -4.023      0.000      -3.457      -1.192
+uninsured_dep_share          -0.4421      0.368     -1.203      0.229      -1.162       0.278
+unreal_loss_to_adj_equity    -0.0481      0.289     -0.166      0.868      -0.614       0.518
+log_total_assets              0.1165      0.030      3.929      0.000       0.058       0.175
 ==============================================================================
-Omnibus:                        3.250   Durbin-Watson:                   2.372
-Prob(Omnibus):                  0.197   Jarque-Bera (JB):                1.120
-Skew:                          -0.811   Prob(JB):                        0.571
-Kurtosis:                       3.241   Cond. No.                         699.
+Omnibus:                        8.318   Durbin-Watson:                   1.852
+Prob(Omnibus):                  0.016   Jarque-Bera (JB):                3.941
+Skew:                          -1.200   Prob(JB):                        0.139
+Kurtosis:                       4.456   Cond. No.                         467.
 ==============================================================================
 
 Notes:

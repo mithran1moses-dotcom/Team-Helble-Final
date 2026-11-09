@@ -11,7 +11,7 @@ Output: outputs/regression_main.csv              coefficients, robust SEs, p-val
         outputs/regression_main.txt              full statsmodels summary
         outputs/figures/scatter_loss_vs_car.png  unreal_loss_to_adj_equity vs car_0_2
 
-v0 caveat: with 10-12 banks and 4 coefficients, this is a pipeline check, not evidence.
+v0 caveat: with 12 banks and 4 coefficients, this is a pipeline check, not evidence.
 Every spec run must be logged in specs_tried.md.
 """
 
@@ -27,10 +27,13 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
 sample = pd.read_csv(OUT / "analysis_sample.csv")
 
-# 1. Regression on the banks that have every variable (rows missing car_0_2 drop out).
+# 1. Regression on the banks that have every variable. All 12 v0 banks must be
+#    used: stop if any bank drops out for a missing value.
 formula = "car_0_2 ~ uninsured_dep_share + unreal_loss_to_adj_equity + log_total_assets"
 used = sample.dropna(subset=["car_0_2", "uninsured_dep_share", "unreal_loss_to_adj_equity", "log_total_assets"])
+assert len(sample) == 12 and len(used) == 12, f"only {len(used)} of {len(sample)} banks usable"
 fit = smf.ols(formula, data=used).fit(cov_type="HC1")
+assert int(fit.nobs) == 12
 
 # 2. Save a tidy coefficient table and the full summary (both feed the dashboard and report).
 table = pd.DataFrame({"term": fit.params.index, "coef": fit.params.values,
@@ -64,12 +67,11 @@ ax.tick_params(colors=MUTED, labelsize=9)
 ax.set_xlabel("Unrealized securities losses / adjusted equity (12/31/2022)", color=INK, fontsize=10)
 ax.set_ylabel("CAR, Mar 9–13, 2023 (days 0 to +2)", color=INK, fontsize=10)
 
-missing = ", ".join(sample.loc[sample["car_0_2"].isna(), "ticker"]) or "none"
 ax.set_title(f"Securities losses vs. stock reaction to SVB's failure ({len(used)} banks)",
              color=INK, fontsize=11, loc="left")
-fig.text(0.01, 0.01, f"Dot size = uninsured deposit share. Not shown (no returns yet): {missing}. "
-         "Source: outputs/analysis_sample.csv", color=MUTED, fontsize=8)
-fig.tight_layout(rect=(0, 0.04, 1, 1))
+fig.text(0.01, 0.01, "Dot size = uninsured deposit share. SIVB's CAR covers day 0 only (stopped trading after Mar 9).\n"
+         "Returns: CRSP via WRDS. Source: outputs/analysis_sample.csv", color=MUTED, fontsize=8)
+fig.tight_layout(rect=(0, 0.07, 1, 1))
 fig.savefig(OUT / "figures" / "scatter_loss_vs_car.png", dpi=200)
 
 print(f"Regression on {int(fit.nobs)} banks (HC1 robust SEs):")
