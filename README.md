@@ -21,9 +21,9 @@ _Team decisions are logged in [`DECISIONS.md`](DECISIONS.md), which overrides th
 
 | bhc_rssd | ticker | bhc_name | report_period | total_assets | total_equity | uninsured_dep_share | htm_loss | afs_loss | unreal_loss_to_adj_equity | htm_loss_to_equity | car_0_2 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| _id_ | ZION | Zions Bancorporation | 12312022 | _$K_ | _$K_ | _0.xx_ | _$K_ | _$K_ | _0.xx_ | _0.xx_ | _−0.xx_ |
+| 276579 | ZION | ZIONS BANCORPORATION, NATIONAL ASSOCIATION | 12312022 | 89,544,919 | 4,893,499 | 0.498 | −113,126 | 1,623,190 | 0.232 | −0.023 | −0.358 |
 
-_(Placeholder row. Replace it with a real row from `outputs/` once the proof of concept runs.)_
+_(Real row from `outputs/analysis_sample.csv`, rebuilt 2026-11-09. Dollar amounts in $ thousands. ZION's HTM loss is negative: see the AFS-to-HTM transfer item in `audits/01_self_audit.md`.)_
 
 | Variable | Definition | Source |
 |---|---|---|
@@ -63,12 +63,11 @@ inputs/
   call_reports/               raw FFIEC bulk files (git-ignored; see README there for provenance)
   links/                      RSSD ↔ ticker links (hand map committed; raw NY Fed file git-ignored)
   prices/crsp/                CRSP returns from WRDS (git-ignored, WRDS license; README and provenance note committed)
-  prices/yfinance_prices.*    old Yahoo snapshot, no longer used (see dev/)
 temp/                       intermediate files (git-ignored, rebuilt)
 outputs/                    final datasets, tables, figures (every reported number comes from here)
 audits/                     self-audits per checkpoint
 app.py                      Streamlit dashboard: Introduction, Methodology, Analysis, Interactive fragility screen
-dev/                        scratch work, test helpers and the retired yfinance script (not part of the pipeline)
+dev/                        scratch work, test helpers, and the retired yfinance script with its old price snapshot (not part of the pipeline)
 ```
 
 ## How to run

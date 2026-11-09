@@ -10,8 +10,8 @@ Original description:
 Downloads daily prices from Yahoo Finance (yfinance) for the 12 v0 banks plus SPY
 (the market index for the event study), Jan 2022 to Jun 2023.
 
-Output: inputs/prices/yfinance_prices.csv            long format: date, ticker, adj_close
-        inputs/prices/yfinance_prices.provenance.txt  when, what version, which tickers were missing
+Output: dev/yfinance_prices.csv            long format: date, ticker, adj_close
+        dev/yfinance_prices.provenance.txt  when, what version, which tickers were missing
 
 The raw prices are committed (not git-ignored) because Yahoo revises adjusted
 prices over time, so a re-download may not match exactly. Re-running this
@@ -28,7 +28,7 @@ import pandas as pd
 import yfinance as yf
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "inputs" / "prices" / "yfinance_prices.csv"
+OUT = ROOT / "dev" / "yfinance_prices.csv"  # old snapshot, kept next to this script
 START, END = "2022-01-01", "2023-07-01"  # yfinance's end date is exclusive, so this ends Jun 30, 2023
 
 # The 12 v0 tickers come from the link inputs, plus SPY for the market model.

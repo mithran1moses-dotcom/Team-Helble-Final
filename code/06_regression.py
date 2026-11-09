@@ -72,6 +72,8 @@ ax.set_title(f"Securities losses vs. stock reaction to SVB's failure ({len(used)
 fig.text(0.01, 0.01, "Dot size = uninsured deposit share. SIVB's CAR covers day 0 only (stopped trading after Mar 9).\n"
          "Returns: CRSP via WRDS. Source: outputs/analysis_sample.csv", color=MUTED, fontsize=8)
 fig.tight_layout(rect=(0, 0.07, 1, 1))
+# Make the figures folder if it is missing (e.g. a rebuild from an empty outputs/).
+(OUT / "figures").mkdir(parents=True, exist_ok=True)
 fig.savefig(OUT / "figures" / "scatter_loss_vs_car.png", dpi=200)
 
 print(f"Regression on {int(fit.nobs)} banks (HC1 robust SEs):")

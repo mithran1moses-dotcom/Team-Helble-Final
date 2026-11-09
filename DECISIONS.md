@@ -30,7 +30,7 @@ Running log of decisions and changes for the Bank Fragility project (Seed 6). Ow
 - **Decided: main measure = (HTM loss + AFS loss) / (total equity + AFS loss).** Follows Jiang, Matvos, Piskorski & Seru (2023).
 - AFS losses are added back to the denominator because they are already deducted from book equity.
 - Robustness: HTM loss only. Column names: main = `unreal_loss_to_adj_equity`; robustness = `htm_loss_to_equity`. CAR column = `car_0_2`.
-- Change needed in `code/02_build_bank_measures.py`: currently divides by plain `total_equity`.
+- ~~Change needed in `code/02_build_bank_measures.py`: currently divides by plain `total_equity`.~~ Done 11/7: the code now uses (total equity + AFS loss).
 
 ## Data source
 
@@ -56,7 +56,7 @@ Running log of decisions and changes for the Bank Fragility project (Seed 6). Ow
 - Builds on the existing `code/02_build_bank_measures.py`.
 - Teammates still need to be able to explain this code for the audit.
 
-## Changes needed in repo
+## Changes needed in repo (all done 11/7)
 
 - README: rename `car_0_5` to `car_0_2`, update window definition, sample size for v0, loss-ratio denominator.
 - `02_build_bank_measures.py`: adjust denominator; add holding-company aggregation; add HTM-only ratio.
@@ -66,7 +66,7 @@ Running log of decisions and changes for the Bank Fragility project (Seed 6). Ow
 
 - Convenience sample chosen knowing the outcome; v1 uses all listed banks.
 - Survivorship: SIVB, SBNY, FRC, PACW failed or merged.
-- SIVB stopped trading Mar 10, so its CAR covers only day 0.
+- SIVB stopped trading after Mar 9 (halted Mar 10, then seized), so its CAR covers only day 0. CRSP's Mar 10 return is a quote with no trade and is dropped (see "Data source").
 - Uninsured deposits only reported by banks with at least $1B in assets.
 - Window choice justified against news timeline; Credit Suisse on Mar 15.
 - Loss-ratio choice and double-counting adjustment.

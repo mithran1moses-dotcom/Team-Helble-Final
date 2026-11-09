@@ -70,7 +70,7 @@ Kept as a living list in `README.md` ("Threats to validity"). Every item above m
 
 | Item | Status | Evidence |
 |---|---|---|
-| One command rebuilds every output from the inputs | OK | `python run_all.py`. On 2026-11-07 a full rerun reproduced every committed output byte for byte, except the clock time printed inside `outputs/regression_main.txt`. |
+| One command rebuilds every output from the inputs | OK | `python run_all.py`. On 2026-11-09, after the switch to CRSP, `outputs/` and `temp/` were emptied and a full rerun reproduced every committed output byte for byte, except the clock time printed inside `outputs/regression_main.txt`. (Uses the CRSP files on disk; pulling them again needs a WRDS login.) |
 | Fake-data test runs before real data | OK | first steps of `run_all.py` |
 | Manual downloads documented step by step | OK | READMEs in `inputs/call_reports/`, `inputs/links/`; CRSP pull is scripted and needs a WRDS login (`inputs/prices/crsp/README.md`) |
 | Every number in the dashboard comes from `outputs/` and names its file | OK | `app.py` |

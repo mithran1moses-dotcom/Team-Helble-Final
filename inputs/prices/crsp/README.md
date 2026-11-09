@@ -39,4 +39,4 @@ Delisting returns: `code/04_event_study.py` compounds `dlret` into the return on
 
 | Files | Pulled on | By | Notes |
 |---|---|---|---|
-| | | | |
+| `crsp_names.csv`, `crsp_dsf.csv`, `crsp_delist.csv`, `crsp_permno_map.csv` | 2026-11-09 | Mithran (script) | 4,798 daily rows, 13 delisting rows; details in `crsp_pull.provenance.txt` |
