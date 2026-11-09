@@ -14,8 +14,9 @@ Inputs : inputs/prices/crsp/crsp_dsf.csv          CRSP daily returns      (code/
 Output : outputs/car_0_2.csv                      one row per v0 ticker (12 rows), source = CRSP
 
 All returns, banks and SPY, come from CRSP via WRDS. Rows are matched by PERMNO,
-never by ticker. SIVB stopped trading after Mar 9, 2023 (halted Mar 10, then
-seized), so its CAR covers day 0 only; n_event_days and note record this.
+never by ticker. Days with no trade (CRSP price < 0) are dropped. SIVB stopped
+trading after Mar 9, 2023 (halted Mar 10, then seized; CRSP's Mar 10 return is a
+quote, not a trade), so its CAR covers day 0 only; n_event_days and note record this.
 """
 
 from pathlib import Path
@@ -38,9 +39,17 @@ pmap = pd.read_csv(CRSP / "crsp_permno_map.csv")
 assert pmap["permno"].is_unique and pmap["ticker"].is_unique
 assert set(pmap["ticker"]) == set(tickers) | {"SPY"}
 
-# 2. CRSP daily returns. RET includes dividends; it is blank on days with no trade.
-daily = pd.read_csv(CRSP / "crsp_dsf.csv", parse_dates=["date"])[["permno", "date", "ret"]]
+# 2. CRSP daily returns. RET includes dividends.
+daily = pd.read_csv(CRSP / "crsp_dsf.csv", parse_dates=["date"])
 assert not daily.duplicated(["permno", "date"]).any()
+
+# Keep only days with an actual trade. CRSP marks a no-trade day with a negative
+# price (the bid/ask midpoint); a quote nobody traded at is not a market reaction.
+# This drops one row: SIVB on Mar 10, 2023 (halted all day; quote-based RET -62.9%).
+no_trade = daily["prc"] < 0
+print(f"Dropping {no_trade.sum()} no-trade day(s):")
+print(daily.loc[no_trade, ["permno", "date", "ret", "prc"]].to_string(index=False))
+daily = daily[~no_trade][["permno", "date", "ret"]]
 
 # 3. CRSP delisting returns: the return from the last price to the value after
 #    delisting, dated on the delisting date. Keep those inside the sample window.
