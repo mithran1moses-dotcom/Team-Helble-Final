@@ -28,6 +28,7 @@ them straight to the connection. Nothing is written to disk (it never creates a
 
 import getpass
 from datetime import date
+from importlib.metadata import version
 from pathlib import Path
 
 import pandas as pd
@@ -107,7 +108,7 @@ dsf.sort_values(["permno", "date"]).to_csv(OUT / "crsp_dsf.csv", index=False)
 delist.to_csv(OUT / "crsp_delist.csv", index=False)
 pmap.to_csv(OUT / "crsp_permno_map.csv", index=False)
 (OUT / "crsp_pull.provenance.txt").write_text(
-    f"Source: CRSP via WRDS (PostgreSQL), Python package wrds {wrds.__version__}\n"
+    f"Source: CRSP via WRDS (PostgreSQL), Python package wrds {version('wrds')}\n"
     f"Tables: {', '.join(TABLES)}\n"
     f"Window: {START} to {END}\n"
     f"Pulled: {date.today()}\n"
