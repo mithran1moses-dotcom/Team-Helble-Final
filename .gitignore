@@ -17,3 +17,10 @@ temp/*
 # Fake test data (dev/make_fake_call_reports.py)
 inputs/call_reports/FAKE/
 outputs/*FAKE*
+
+# CRSP data from WRDS: the license forbids redistribution. Ignore every raw pull in
+# any format; commit only the README and the provenance note. Only derived results
+# (CARs, regression) go in outputs/.
+inputs/prices/crsp/*
+!inputs/prices/crsp/README.md
+!inputs/prices/crsp/crsp_pull.provenance.txt
