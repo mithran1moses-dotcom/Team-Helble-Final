@@ -8,63 +8,70 @@ Market-model event study around SVB's failure. For each v0 bank:
     3. car_0_2 = sum of abnormal returns on trading days 0, +1, +2:
        Mar 9, Mar 10 and Mar 13, 2023 (day 0 = Mar 9; see DECISIONS.md).
 
-Inputs : inputs/prices/yfinance_prices.csv   (code/03_download_prices.py)
-         inputs/prices/crsp/*.csv            CRSP daily returns for delisted banks (optional;
-                                             see inputs/prices/crsp/README.md)
-Output : outputs/car_0_2.csv                 one row per v0 ticker (12 rows)
+Inputs : inputs/prices/crsp/crsp_dsf.csv          CRSP daily returns      (code/03_download_crsp.py)
+         inputs/prices/crsp/crsp_delist.csv       CRSP delisting returns  (same script)
+         inputs/prices/crsp/crsp_permno_map.csv   ticker -> PERMCO -> PERMNO (same script)
+Output : outputs/car_0_2.csv                      one row per v0 ticker (12 rows), source = CRSP
 
-SIVB stopped trading on Mar 10, 2023 (the bank was seized before the open).
-Its CAR therefore covers only the days it traded; n_event_days records how many.
+All returns, banks and SPY, come from CRSP via WRDS. Rows are matched by PERMNO,
+never by ticker. SIVB stopped trading after Mar 9, 2023 (halted Mar 10, then
+seized), so its CAR covers day 0 only; n_event_days and note record this.
 """
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
 ROOT = Path(__file__).resolve().parents[1]
-PRICES = ROOT / "inputs" / "prices"
+CRSP = ROOT / "inputs" / "prices" / "crsp"
 EVENT_DAYS = pd.to_datetime(["2023-03-09", "2023-03-10", "2023-03-13"])  # days 0, +1, +2
 EST_START, EST_END = pd.Timestamp("2022-01-01"), pd.Timestamp("2022-12-31")
+SAMPLE_END = pd.Timestamp("2023-06-30")  # last day pulled by code/03_download_crsp.py
 MIN_EST_DAYS = 200  # a bank needs most of 2022 to estimate a reliable beta
 
 tickers = pd.read_csv(ROOT / "inputs" / "links" / "v0_banks.csv")["ticker"].tolist()
 
-# 1. Yahoo returns: daily percent change in adjusted close, per ticker.
-yf_prices = pd.read_csv(PRICES / "yfinance_prices.csv", parse_dates=["date"])
-yf_prices = yf_prices.sort_values(["ticker", "date"])
-yf_prices["ret"] = yf_prices.groupby("ticker")["adj_close"].pct_change()
-returns = yf_prices.dropna(subset=["ret"])[["date", "ticker", "ret"]]
-returns["source"] = "yfinance"
+# 1. The PERMNO for each ticker (12 banks + SPY), found by 03 through the PERMCO.
+pmap = pd.read_csv(CRSP / "crsp_permno_map.csv")
+assert pmap["permno"].is_unique and pmap["ticker"].is_unique
+assert set(pmap["ticker"]) == set(tickers) | {"SPY"}
 
-# 2. CRSP returns for banks Yahoo does not have (delisted). WRDS exports name the
-#    columns either date/TICKER/RET (classic format) or DlyCalDt/Ticker/DlyRet (new format).
-crsp_files = sorted((PRICES / "crsp").glob("*.csv"))
-if crsp_files:
-    crsp = pd.concat([pd.read_csv(f, dtype=str) for f in crsp_files])
-    crsp.columns = crsp.columns.str.lower()
-    crsp = crsp.rename(columns={"dlycaldt": "date", "dlyret": "ret"})
-    crsp["date"] = pd.to_datetime(crsp["date"])
-    crsp["ret"] = pd.to_numeric(crsp["ret"], errors="coerce")  # CRSP uses letter codes for missing returns
-    crsp = crsp.dropna(subset=["ret"])
-    crsp = crsp[crsp["ticker"].isin(tickers) & ~crsp["ticker"].isin(returns["ticker"])]
-    crsp = crsp[["date", "ticker", "ret"]].drop_duplicates()
-    crsp["source"] = "CRSP"
-    returns = pd.concat([returns, crsp])
-assert not returns.duplicated(["date", "ticker"]).any()
+# 2. CRSP daily returns. RET includes dividends; it is blank on days with no trade.
+daily = pd.read_csv(CRSP / "crsp_dsf.csv", parse_dates=["date"])[["permno", "date", "ret"]]
+assert not daily.duplicated(["permno", "date"]).any()
 
-# 3. Put each bank's return next to the market (SPY) return on the same day.
-market = returns[returns["ticker"] == "SPY"][["date", "ret"]].rename(columns={"ret": "mkt_ret"})
+# 3. CRSP delisting returns: the return from the last price to the value after
+#    delisting, dated on the delisting date. Keep those inside the sample window.
+delist = pd.read_csv(CRSP / "crsp_delist.csv", parse_dates=["dlstdt"])
+delist = delist.dropna(subset=["dlret"]).rename(columns={"dlstdt": "date"})
+delist = delist[delist["date"] <= SAMPLE_END][["permno", "date", "dlret"]]
+assert delist["permno"].is_unique
+
+# 4. Combine them: on a delisting date, compound the day's return with the
+#    delisting return; if the stock did not trade that day, use DLRET alone.
+rets = daily.merge(delist, on=["permno", "date"], how="outer", validate="1:1")
+both = rets["ret"].notna() & rets["dlret"].notna()
+rets["ret"] = np.where(both, (1 + rets["ret"]) * (1 + rets["dlret"]) - 1,
+                       rets["ret"].fillna(rets["dlret"]))
+rets["has_dlret"] = rets["dlret"].notna()
+rets = rets.dropna(subset=["ret"])
+
+# 5. Attach tickers by PERMNO (every PERMNO pulled must be in the map).
+rets = rets.merge(pmap[["permno", "ticker"]], on="permno", how="left", validate="m:1")
+assert rets["ticker"].notna().all()
+
+# 6. Put each bank's return next to the market (SPY) return on the same day.
+market = rets[rets["ticker"] == "SPY"][["date", "ret"]].rename(columns={"ret": "mkt_ret"})
 assert set(EVENT_DAYS) <= set(market["date"]), "an event day is not a trading day in the SPY data"
-banks = returns[returns["ticker"] != "SPY"].merge(market, on="date", how="inner", validate="m:1")
+banks = rets[rets["ticker"] != "SPY"].merge(market, on="date", how="inner", validate="m:1")
 
-# 4. For each ticker: fit the market model on 2022, then sum abnormal returns on event days.
+# 7. For each ticker: fit the market model on 2022, then sum abnormal returns on event days.
 rows = []
 for ticker in tickers:
     bank = banks[banks["ticker"] == ticker]
-    if bank.empty:
-        rows.append({"ticker": ticker, "note": "no return data (delisted; add CRSP file)"})
-        continue
+    assert not bank.empty, f"{ticker}: no CRSP returns"
 
     est = bank[(bank["date"] >= EST_START) & (bank["date"] <= EST_END)]
     assert len(est) >= MIN_EST_DAYS, f"{ticker}: only {len(est)} estimation days"
@@ -73,15 +80,22 @@ for ticker in tickers:
 
     event = bank[bank["date"].isin(EVENT_DAYS)]
     abnormal = event["ret"] - (alpha + beta * event["mkt_ret"])
-    note = "" if len(event) == 3 else f"traded on {len(event)} of 3 event days"
 
-    rows.append({"ticker": ticker, "source": bank["source"].iloc[0],
+    # Say plainly when a CAR covers fewer than 3 days or includes a delisting return.
+    notes = []
+    if len(event) < 3:
+        days = ", ".join(f"day {EVENT_DAYS.get_loc(d)}" for d in event["date"])
+        notes.append(f"returns on {len(event)} of 3 event days ({days}); stopped trading")
+    if event["has_dlret"].any():
+        notes.append("includes CRSP delisting return")
+
+    rows.append({"ticker": ticker, "permno": bank["permno"].iloc[0], "source": "CRSP",
                  "alpha": alpha, "beta": beta, "n_est_days": len(est),
-                 "n_event_days": len(event), "car_0_2": abnormal.sum(), "note": note})
+                 "n_event_days": len(event), "car_0_2": abnormal.sum(), "note": "; ".join(notes)})
 
 car = pd.DataFrame(rows)
-car[["n_est_days", "n_event_days"]] = car[["n_est_days", "n_event_days"]].astype("Int64")  # whole numbers, blank if missing
 assert car["ticker"].is_unique and len(car) == len(tickers) == 12
+assert car["car_0_2"].notna().all()
 
 out = ROOT / "outputs" / "car_0_2.csv"
 car.to_csv(out, index=False)

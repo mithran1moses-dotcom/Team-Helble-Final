@@ -1,6 +1,6 @@
 pandas>=2.0
 numpy
-yfinance
+wrds
 statsmodels
 streamlit
 matplotlib

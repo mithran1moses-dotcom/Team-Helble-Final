@@ -1,5 +1,11 @@
 """
-03_download_prices.py
+03_download_prices_yfinance_RETIRED.py  (RETIRED 2026-11-09: kept for reference only)
+
+Not run by run_all.py. Stock returns now come from CRSP via WRDS for all 12 banks
+(code/03_download_crsp.py; DECISIONS.md, "Data source"). Needs `pip install yfinance`,
+which is no longer in requirements.txt.
+
+Original description:
 
 Downloads daily prices from Yahoo Finance (yfinance) for the 12 v0 banks plus SPY
 (the market index for the event study), Jan 2022 to Jun 2023.
