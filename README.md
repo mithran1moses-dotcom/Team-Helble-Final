@@ -65,9 +65,10 @@ inputs/
   prices/crsp/                CRSP returns from WRDS (git-ignored, WRDS license; README and provenance note committed)
 temp/                       intermediate files (git-ignored, rebuilt)
 outputs/                    final datasets, tables, figures (every reported number comes from here)
-audits/                     self-audits per checkpoint
+audits/                     self-audits per checkpoint, plus standalone checks (e.g. mdrm_check.md)
 app.py                      Streamlit dashboard: Introduction, Methodology, Analysis, Interactive fragility screen
 dev/                        scratch work, test helpers, and the retired yfinance script with its old price snapshot (not part of the pipeline)
+docs/                       reference only: course instructions (docs/course/) and internal planning notes (docs/internal/)
 ```
 
 ## How to run

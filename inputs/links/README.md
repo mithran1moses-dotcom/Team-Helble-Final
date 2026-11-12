@@ -11,7 +11,7 @@ and `code/01b_build_link_table.py`.
 - `bank_link_v0.csv`: built by `code/01b_build_link_table.py`. One row per bank subsidiary.
   **Every row must be hand-checked** (fill `checked_by` and `checked_on`). The script refuses
   to overwrite the file once any row is checked.
-- `poc_banks_handmap_TEMPLATE.csv`: the original template (kept for reference).
+- The original hand-map template is retired to `dev/poc_banks_handmap_TEMPLATE_RETIRED.csv`.
 
 ## Raw files (git-ignored, in `raw/`)
 
