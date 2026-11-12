@@ -57,7 +57,7 @@ Each answer points to the file that backs it up. **Status** is one of: OK, LIMIT
 | Item | Status | Evidence |
 |---|---|---|
 | Every merge uses `validate=` and keys are asserted unique | OK | `code/01b`, `02`, `03`, `04`, `05` |
-| **Link quality: match rate and hand-checked sample.** 12 of 12 tickers matched by name to the NY Fed file; 21 linked banks, of which 19 file call reports (the 2 trust companies without a call report are printed and dropped). Rows hand-checked: **0 of 21**. | **OPEN** | `inputs/links/bank_link_v0.csv` (`checked_by` blank); output of `code/02_build_bank_measures.py` |
+| **Link quality: match rate and hand-checked sample.** 12 of 12 tickers matched by name to the NY Fed file; 21 linked banks, of which 19 file call reports (the 2 trust companies without a call report are printed and dropped). Rows hand-checked: **14 of 21** on NIC (11/11, Lucas); the 7 rows NIC can't show rest on FDIC 12/31/2022 records awaiting review (`audits/link_check_sheet.md`). | **OPEN** | `inputs/links/bank_link_v0.csv` (`checked_by` blank); output of `code/02_build_bank_measures.py` |
 | Two linked banks have no NIC record; identified from the call report filer list as Comerica Bank (60143) and MUFG Union Bank (212465, owned by USB 12/1/2022 to 5/26/2023) | OK, needs hand-check | `outputs/bank_measures_2022Q4.csv` |
 | Zions is a bank with no holding company (`bhc_rssd` = `bank_rssd`) | OK | note on ZION row of `inputs/links/bank_link_v0.csv` |
 | Banks owned by another bank are dropped to avoid double counting (consolidated in the parent's call report) | OK, needs hand-check | dropped list printed by `code/01b_build_link_table.py` |
@@ -79,7 +79,7 @@ Kept as a living list in `README.md` ("Threats to validity"). Every item above m
 ## 8. Open issues (before the v0 deadline, Sat Nov 14)
 
 1. ~~CRSP returns for SIVB and CMA.~~ Done 11/9: all returns from CRSP via WRDS.
-2. **Hand-check all 21 link-table rows** and fill `checked_by`, `checked_on`. In progress (11/11, Lucas): checking sheet in `audits/link_check_sheet.md`. FDIC cross-check: 19 of 19 call-report filers match on holding company and total assets. Three findings to resolve (A–C), including a possible $76M Comerica double count.
+2. **Hand-check all 21 link-table rows** and fill `checked_by`, `checked_on`. **14 of 21 signed** (11/11, Lucas, on NIC). The other 7 (rows 3, 4, 6, 8, 11, 13, 14) can't be shown by NIC, mostly because the banks have since closed. Each has FDIC 12/31/2022 evidence in `audits/link_check_sheet.md` and awaits a person's review of that evidence before sign-off. Findings A–C resolved: no double count, and nothing missing.
 3. ~~Verify MDRM codes against the FFIEC data dictionary for 12/31/2022.~~ Done 11/11 (Lucas): `audits/mdrm_check.md`.
 4. **Team decision on AFS-to-HTM transfer losses** (fix in v1, or document as a limitation).
 5. ~~Re-run the regression and update `specs_tried.md` once SIVB and CMA are in.~~ Done 11/9 (`specs_tried.md` #3).
