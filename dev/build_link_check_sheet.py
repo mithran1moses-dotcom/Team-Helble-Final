@@ -9,8 +9,13 @@ script checks it against a third source, the FDIC BankFind API
 (https://api.fdic.gov/banks/), using each bank's 12/31/2022 quarterly record:
     1. Does the FDIC put the bank under the same holding company (RSSDHCR)?
     2. Does the FDIC's total assets match our call report total assets?
-    3. Completeness: which FDIC-insured banks does the FDIC place under our 12
+    3. Is the bank owned directly by the holding company, or by another bank
+       (PARCERT = the parent bank's FDIC certificate, 0 if none)? A bank owned by
+       another bank is already inside its parent's call report, so keeping both
+       would double count.
+    4. Completeness: which FDIC-insured banks does the FDIC place under our 12
        holding companies on 12/31/2022, and are any missing from our table?
+       Each one left out should be owned by a bank that is in our table.
 
 It does NOT replace the hand-check. A person still reviews each row (see
 audits/link_check_sheet.md) and fills checked_by / checked_on in the link table.
@@ -31,7 +36,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 API = "https://api.fdic.gov/banks/"
 REPDTE = "20221231"
-FIELDS = "REPDTE,CERT,NAME,RSSDHCR,NAMEHCR,ASSET"
+FIELDS = "REPDTE,CERT,NAME,RSSDHCR,NAMEHCR,ASSET,PARCERT"
 
 
 def fdic(endpoint: str, filters: str, fields: str, limit: int = 100) -> list[dict]:
@@ -62,6 +67,7 @@ for r in sheet.itertuples():
         if recs:
             ev.update({"fdic_name": recs[0]["NAME"], "fdic_holder_rssd": int(recs[0]["RSSDHCR"] or 0),
                        "fdic_holder_name": recs[0]["NAMEHCR"], "fdic_assets": recs[0]["ASSET"],
+                       "fdic_parent_bank_cert": int(recs[0]["PARCERT"] or 0),
                        "fdic_source": f"financials, REPDTE {REPDTE}"})
     else:
         recs = fdic("institutions", f"FED_RSSD:{r.bank_rssd}", "NAME,CERT,RSSDHCR,NAMEHCR,ACTIVE")
@@ -79,6 +85,10 @@ sheet["holder_match"] = sheet["fdic_holder_rssd"] == holder_expected
 # Assets are in $ thousands in both sources; allow $1K of rounding. Blank when the FDIC has no figure.
 assets_close = (sheet["fdic_assets"] - sheet["callreport_assets"]).abs() <= 1
 sheet["assets_match"] = assets_close.astype("boolean").mask(sheet["fdic_assets"].isna())
+# A kept bank must not be owned by another bank (PARCERT 0), or it would be counted twice.
+sheet["not_owned_by_a_bank"] = (sheet["fdic_parent_bank_cert"] == 0).astype("boolean").mask(
+    sheet["fdic_parent_bank_cert"].isna())
+assert sheet["not_owned_by_a_bank"].dropna().all(), "a kept bank is owned by another bank: double count"
 sheet["nic_profile_url"] = ("https://www.ffiec.gov/npw/Institution/Profile/"
                             + sheet["bank_rssd"].astype(str))
 sheet["pulled_on"] = date.today().isoformat()
@@ -87,15 +97,23 @@ out = ROOT / "audits" / "link_check_fdic.csv"
 sheet.to_csv(out, index=False)
 print(f"Wrote {out.relative_to(ROOT)}")
 print(sheet[["ticker", "bank_rssd", "callreport_name", "fdic_holder_rssd", "bhc_rssd",
-             "holder_match", "assets_match", "fdic_source"]].to_string(index=False))
+             "holder_match", "assets_match", "not_owned_by_a_bank", "fdic_source"]].to_string(index=False))
 
 # 4. Completeness: every insured bank the FDIC places under one of our holding companies.
 #    Zions has no holding company, so it is checked by its own certificate instead.
+#    A bank left out of our table is fine only if its parent bank IS in our table
+#    (then the parent's call report already includes it).
 holders = " OR ".join(str(x) for x in sorted(set(link["bhc_rssd"]) - set(link["bank_rssd"])))
 universe = pd.DataFrame(fdic("financials", f"RSSDHCR:({holders}) AND REPDTE:{REPDTE}", FIELDS))
 universe["CERT"] = universe["CERT"].astype(int)
-universe["in_our_link_table"] = universe["CERT"].isin(sheet["fdic_cert"].dropna().astype(int))
+our_certs = set(sheet["fdic_cert"].dropna().astype(int))
+universe["PARCERT"] = universe["PARCERT"].fillna(0).astype(int)
+universe["in_our_link_table"] = universe["CERT"].isin(our_certs)
+universe["covered_by_parent_bank"] = ~universe["in_our_link_table"] & universe["PARCERT"].isin(our_certs)
+missing = universe[~universe["in_our_link_table"] & ~universe["covered_by_parent_bank"]]
+assert missing.empty, f"banks missing from the link table: {missing['NAME'].tolist()}"
 out_u = ROOT / "audits" / "link_check_fdic_universe.csv"
 universe.sort_values(["RSSDHCR", "CERT"]).to_csv(out_u, index=False)
 print(f"\nWrote {out_u.relative_to(ROOT)}: {len(universe)} FDIC-insured banks under our holding companies")
-print(universe[["NAMEHCR", "CERT", "NAME", "ASSET", "in_our_link_table"]].to_string(index=False))
+print(universe[["NAMEHCR", "CERT", "NAME", "ASSET", "PARCERT", "in_our_link_table",
+                "covered_by_parent_bank"]].to_string(index=False))
