@@ -79,7 +79,7 @@ Kept as a living list in `README.md` ("Threats to validity"). Every item above m
 ## 8. Open issues (before the v0 deadline, Sat Nov 14)
 
 1. ~~CRSP returns for SIVB and CMA.~~ Done 11/9: all returns from CRSP via WRDS.
-2. **Hand-check all 21 link-table rows** and fill `checked_by`, `checked_on`.
+2. **Hand-check all 21 link-table rows** and fill `checked_by`, `checked_on`. In progress (11/11, Lucas): checking sheet in `audits/link_check_sheet.md`. FDIC cross-check: 19 of 19 call-report filers match on holding company and total assets. Three findings to resolve (A–C), including a possible $76M Comerica double count.
 3. ~~Verify MDRM codes against the FFIEC data dictionary for 12/31/2022.~~ Done 11/11 (Lucas): `audits/mdrm_check.md`.
 4. **Team decision on AFS-to-HTM transfer losses** (fix in v1, or document as a limitation).
 5. ~~Re-run the regression and update `specs_tried.md` once SIVB and CMA are in.~~ Done 11/9 (`specs_tried.md` #3).

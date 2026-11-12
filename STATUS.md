@@ -23,7 +23,7 @@ Update this whenever a pipeline step is finished or blocked. Add the date and yo
 
 ## Blocked / waiting on
 
-- Hand-check of all 21 rows in `inputs/links/bank_link_v0.csv` (fill `checked_by`, `checked_on`).
+- Hand-check of all 21 rows in `inputs/links/bank_link_v0.csv` (fill `checked_by`, `checked_on`). Checking sheet and FDIC cross-check ready: `audits/link_check_sheet.md` (11/11, Lucas).
 
 ## Next up
 
