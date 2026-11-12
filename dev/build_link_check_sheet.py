@@ -80,7 +80,7 @@ sheet["holder_match"] = sheet["fdic_holder_rssd"] == holder_expected
 assets_close = (sheet["fdic_assets"] - sheet["callreport_assets"]).abs() <= 1
 sheet["assets_match"] = assets_close.astype("boolean").mask(sheet["fdic_assets"].isna())
 sheet["nic_profile_url"] = ("https://www.ffiec.gov/npw/Institution/Profile/"
-                            + sheet["bank_rssd"].astype(str) + "?dt=" + REPDTE)
+                            + sheet["bank_rssd"].astype(str))
 sheet["pulled_on"] = date.today().isoformat()
 
 out = ROOT / "audits" / "link_check_fdic.csv"

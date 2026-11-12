@@ -19,7 +19,7 @@ Our link table was built from two sources: the NY Fed CRSP-FRB file and FFIEC NI
 
 ## How to sign off a row (about 2 minutes each)
 
-1. Open the row's **NIC** link. If it doesn't load, search the RSSD at <https://www.ffiec.gov/npw> and set the date to **12/31/2022**.
+1. Open the row's **NIC** link. It opens the bank's profile as of today, so **change the page's date to 12/31/2022** before checking. If the link shows an error, go to <https://www.ffiec.gov/npw>, type the RSSD into the search box, and set the date there.
 2. Confirm three things:
    - the legal name matches
    - the bank is **active** on 12/31/2022
@@ -31,27 +31,27 @@ Our link table was built from two sources: the NY Fed CRSP-FRB file and FFIEC NI
 
 | # | Ticker | bank_rssd | Bank (call report name) | Files call report? | FDIC holder ✅ | FDIC assets ✅ | Look up | Checked | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | BAC | 480228 | BANK OF AMERICA, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/480228?dt=20221231) | ☐ | |
-| 2 | BAC | 1443266 | BANK OF AMERICA CALIFORNIA, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/1443266?dt=20221231) | ☐ | |
-| 3 | CMA | 60143 | COMERICA BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/60143?dt=20221231) | ☐ | No NIC record in our download; the name comes from the call report. See finding C. |
-| 4 | CMA | 772446 | COMERICA BANK & TRUST, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/772446?dt=20221231) | ☐ | **See finding C:** is its direct parent Comerica Inc. or Comerica Bank? |
-| 5 | FITB | 723112 | FIFTH THIRD BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/723112?dt=20221231) | ☐ | |
-| 6 | JPM | 651448 | JPMORGAN CHASE BANK, DEARBORN | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/651448?dt=20221231) | ☐ | Small ($63M). Check its direct parent: JPMorgan Chase & Co. or Chase Bank NA? |
-| 7 | JPM | 852218 | JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/852218?dt=20221231) | ☐ | |
-| 8 | JPM | 2181444 | J.P. MORGAN TRUST COMPANY OF DELAWARE | **no** | — | — | [NIC](https://www.ffiec.gov/npw/Institution/Profile/2181444?dt=20221231) | ☐ | See finding A. |
-| 9 | KEY | 280110 | KEYBANK NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/280110?dt=20221231) | ☐ | |
-| 10 | PNC | 817824 | PNC BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/817824?dt=20221231) | ☐ | |
-| 11 | SIVB | 802866 | SILICON VALLEY BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/802866?dt=20221231) | ☐ | Failed 3/10/2023, so it is inactive today but must show **active** on 12/31/2022. |
-| 12 | TFC | 852320 | TRUIST BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/852320?dt=20221231) | ☐ | |
-| 13 | TFC | 2864774 | TRUIST DELAWARE TRUST COMPANY | **no** | — | — | [NIC](https://www.ffiec.gov/npw/Institution/Profile/2864774?dt=20221231) | ☐ | See finding A. |
-| 14 | USB | 212465 | MUFG UNION BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/212465?dt=20221231) | ☐ | No NIC record in our download. Acquired by U.S. Bancorp 12/1/2022 and merged into U.S. Bank 5/26/2023, so it must be included on 12/31/2022. |
-| 15 | USB | 504713 | U.S. BANK NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/504713?dt=20221231) | ☐ | |
-| 16 | WAL | 3138146 | WESTERN ALLIANCE BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/3138146?dt=20221231) | ☐ | |
-| 17 | WFC | 451965 | WELLS FARGO BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/451965?dt=20221231) | ☐ | |
-| 18 | WFC | 688079 | WELLS FARGO TRUST COMPANY, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/688079?dt=20221231) | ☐ | Check its direct parent (see finding C). |
-| 19 | WFC | 1225761 | WELLS FARGO NATIONAL BANK WEST | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/1225761?dt=20221231) | ☐ | Check its direct parent (see finding C). |
-| 20 | WFC | 2362458 | WELLS FARGO BANK SOUTH CENTRAL, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/2362458?dt=20221231) | ☐ | Check its direct parent (see finding C). |
-| 21 | ZION | 276579 | ZIONS BANCORPORATION, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/276579?dt=20221231) | ☐ | The bank is the listed company (no holding company); the FDIC agrees. |
+| 1 | BAC | 480228 | BANK OF AMERICA, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/480228) | ☐ | |
+| 2 | BAC | 1443266 | BANK OF AMERICA CALIFORNIA, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/1443266) | ☐ | |
+| 3 | CMA | 60143 | COMERICA BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/60143) | ☐ | No NIC record in our download; the name comes from the call report. See finding C. |
+| 4 | CMA | 772446 | COMERICA BANK & TRUST, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/772446) | ☐ | **See finding C:** is its direct parent Comerica Inc. or Comerica Bank? |
+| 5 | FITB | 723112 | FIFTH THIRD BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/723112) | ☐ | |
+| 6 | JPM | 651448 | JPMORGAN CHASE BANK, DEARBORN | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/651448) | ☐ | Small ($63M). Check its direct parent: JPMorgan Chase & Co. or Chase Bank NA? |
+| 7 | JPM | 852218 | JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/852218) | ☐ | |
+| 8 | JPM | 2181444 | J.P. MORGAN TRUST COMPANY OF DELAWARE | **no** | — | — | [NIC](https://www.ffiec.gov/npw/Institution/Profile/2181444) | ☐ | See finding A. |
+| 9 | KEY | 280110 | KEYBANK NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/280110) | ☐ | |
+| 10 | PNC | 817824 | PNC BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/817824) | ☐ | |
+| 11 | SIVB | 802866 | SILICON VALLEY BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/802866) | ☐ | Failed 3/10/2023, so it is inactive today but must show **active** on 12/31/2022. |
+| 12 | TFC | 852320 | TRUIST BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/852320) | ☐ | |
+| 13 | TFC | 2864774 | TRUIST DELAWARE TRUST COMPANY | **no** | — | — | [NIC](https://www.ffiec.gov/npw/Institution/Profile/2864774) | ☐ | See finding A. |
+| 14 | USB | 212465 | MUFG UNION BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/212465) | ☐ | No NIC record in our download. Acquired by U.S. Bancorp 12/1/2022 and merged into U.S. Bank 5/26/2023, so it must be included on 12/31/2022. |
+| 15 | USB | 504713 | U.S. BANK NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/504713) | ☐ | |
+| 16 | WAL | 3138146 | WESTERN ALLIANCE BANK | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/3138146) | ☐ | |
+| 17 | WFC | 451965 | WELLS FARGO BANK, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/451965) | ☐ | |
+| 18 | WFC | 688079 | WELLS FARGO TRUST COMPANY, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/688079) | ☐ | Check its direct parent (see finding C). |
+| 19 | WFC | 1225761 | WELLS FARGO NATIONAL BANK WEST | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/1225761) | ☐ | Check its direct parent (see finding C). |
+| 20 | WFC | 2362458 | WELLS FARGO BANK SOUTH CENTRAL, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/2362458) | ☐ | Check its direct parent (see finding C). |
+| 21 | ZION | 276579 | ZIONS BANCORPORATION, NATIONAL ASSOCIATION | yes | ✅ | ✅ | [NIC](https://www.ffiec.gov/npw/Institution/Profile/276579) | ☐ | The bank is the listed company (no holding company); the FDIC agrees. |
 
 ## Findings to resolve
 
