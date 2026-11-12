@@ -20,7 +20,7 @@ Each answer points to the file that backs it up. **Status** is one of: OK, LIMIT
 | Call reports are from 12/31/2022, the last quarter before SVB failed (no look-ahead) | OK | `inputs/call_reports/README.md` pull log; `report_period` column in `outputs/bhc_measures_2022Q4.csv` |
 | Every raw file has a source and download date | OK | pull logs in `inputs/call_reports/README.md`, `inputs/links/README.md`; `inputs/prices/crsp/crsp_pull.provenance.txt` |
 | **Stock returns: CRSP via WRDS for all 12 banks and SPY** (switched from yfinance on 11/9 for one consistent source that includes delisted banks). Raw pulls are git-ignored (WRDS license); git history checked on 11/9: no raw CRSP data was ever committed. | OK | `inputs/prices/crsp/crsp_pull.provenance.txt` (source, tables `crsp.stocknames`, `crsp.dsf`, `crsp.dsedelist`, date pulled); `.gitignore`; `DECISIONS.md` "Data source" |
-| MDRM codes (2170, 3210, 2200, 5597, 1754, 1771, 1772, 1773) checked against the FFIEC data dictionary for 12/31/2022 | **OPEN** | Not yet checked by a person. Spot check: SVB's HTM loss ($15.2B), BAC's ($108.6B) and WFC's ($41.6B) in `outputs/bank_measures_2022Q4.csv` match widely reported figures. |
+| MDRM codes (2170, 3210, 2200, 5597, 1754, 1771, 1772, 1773) checked against the Federal Reserve MDRM data dictionary for 12/31/2022 | OK (11/11, Lucas; needs a second reviewer's sign-off) | `audits/mdrm_check.md`, rerun with `dev/check_mdrm_codes.py`: all 14 RCFD/RCON codes are in force with the expected names. Spot check: SVB's HTM loss ($15.2B), BAC's ($108.6B) and WFC's ($41.6B) in `outputs/bank_measures_2022Q4.csv` match widely reported figures. |
 
 ## 2. Sample
 
@@ -80,6 +80,6 @@ Kept as a living list in `README.md` ("Threats to validity"). Every item above m
 
 1. ~~CRSP returns for SIVB and CMA.~~ Done 11/9: all returns from CRSP via WRDS.
 2. **Hand-check all 21 link-table rows** and fill `checked_by`, `checked_on`.
-3. **Verify MDRM codes** against the FFIEC data dictionary for 12/31/2022.
+3. ~~Verify MDRM codes against the FFIEC data dictionary for 12/31/2022.~~ Done 11/11 (Lucas): `audits/mdrm_check.md`.
 4. **Team decision on AFS-to-HTM transfer losses** (fix in v1, or document as a limitation).
 5. ~~Re-run the regression and update `specs_tried.md` once SIVB and CMA are in.~~ Done 11/9 (`specs_tried.md` #3).
