@@ -11,7 +11,7 @@
 
 ### Reasoning/Rational for Question Choice
 
-Silicon Valley Bank’s collapse mattered well beyond one bank. It shook U.S. financial markets and hit the tech sector that relied on SVB. We wanted to study it with an event study to see which measurable traits, such as uninsured deposits and bond losses, separated the banks the market punished from the ones it didn’t, and whether those traits could help flag other banks that look like SVB.
+Silicon Valley Bank’s collapse mattered well beyond one bank. It shook U.S. financial markets and hit the tech sector that relied on SVB. We wanted to study it with an event study to see which measurable traits, such as uninsured deposits and bond losses, separated the banks the market punished from the ones it didn’t, and whether those traits could help flag other banks that look like SVB. Banks with more uninsured deposits and larger bond losses will not necessarily have worse returns because other banks with similar high amounts surley have a way to handle such balances.
 
 ## Who and How We Benefit from the Answer
 
