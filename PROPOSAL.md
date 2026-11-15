@@ -22,6 +22,9 @@ Silicon Valley Bank’s collapse mattered well beyond one bank. It shook U.S. fi
 
 TEAM HYPOTHESIS AND THOUGHTS
 
+When discussing the innovation ecosystem, in particular Silicon Valley and the Bay Area at large, the main stakeholders that are discussed most prominently are startups and the venture capitalists, but what is not discussed is who holds the VC funds, and who holds the startup funds: banks like SVB, who often fly under the radar. Given the amount of coverage, study and scrutiny of the 2008 financial crisis, we as a team felt that the SVB banking crisis, which was the largest since 2008, deserved more attention and analysis to see if we can learn some lessons from the past and apply them to today, where VC rounds and startups are getting increasingly large.
+
+
 ## Necessary Data
 
 ##### **Unit of Observation**: A singular publicly traded U.S. Bank Holding Company (`bhc_rssd`).
