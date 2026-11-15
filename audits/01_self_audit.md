@@ -6,7 +6,9 @@ HW8 asks for three things: (A) what a skeptical review of the repo flagged and w
 
 ## A. Skeptical review: what it flagged
 
-The course's _Skeptical review_ prompt (Quick Reference, starter prompt #5) is not stored in this repo. On 2026-11-14 we asked Claude Code to red-team the repo in the same spirit: read the code, outputs and docs; rerun what it could; look for look-ahead, survivorship, broken merges, p-hacking, numbers that don't trace to `outputs/`, and docs that disagree with the code. **To do before the PR is final: rerun the exact Quick Reference prompt and add anything new here.**
+Part A has two passes. **A1** (findings 1–19) is a broad red-team of the repo by Claude Code on 2026-11-14. **A2** (findings 20–27) is the exact _Skeptical review_ prompt from the course Quick Reference (`FIN331_Quick_Reference.pdf`, starter prompt #5), run on 2026-11-14 after A1's fixes.
+
+### A1. Broad red-team (2026-11-14)
 
 What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.py`, passes) and `code/05` and `code/06`, which reproduce the committed `outputs/` (differences only in the 15th decimal place and the timestamp in `regression_main.txt`). Steps `02`–`04` could not be rerun on this machine: the raw call reports and CRSP files are not on it.
 
@@ -25,12 +27,29 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 | 11 | Summing subsidiaries' equity is not the holding company's equity (parent-level debt and non-bank units are missing); the FR Y-9C has the consolidated holding-company numbers. | Real, disclosed ("Entity mismatch" in README) | Limitation; v1 comparison planned (B2) |
 | 12 | The CAR is measured against SPY, so it includes the move of the whole banking sector; the level of a CAR is not bank-specific. In a cross-sectional regression a shared shock mostly moves the intercept. | Real but minor | Limitation; robustness planned (B2) |
 | 13 | With 12 banks and 4 coefficients, the regression is a pipeline check, not evidence; only log assets is significant (p < 0.01; `outputs/regression_main.csv`), and the R² of 0.73 should not be read as fit. | Real, disclosed | Limitation until v1 |
-| 14 | Zions has a negative HTM loss (AFS-to-HTM transfer losses sit in AOCI, not in HTM cost minus fair value). | Real | Open (B2) |
+| 14 | Zions has a negative HTM loss (AFS-to-HTM transfer losses sit in AOCI, not in HTM cost minus fair value). | Real | Limitation; robustness check done 11/14 (B2) |
 | 15 | A full rebuild needs a WRDS login and two manual downloads, so an auditor without WRDS cannot rerun `code/03`. | Real, disclosed | Limitation (license) |
 | 16 | Look-ahead in timing: the 12/31/2022 call reports were due 30 days after quarter end (35 for banks with multiple foreign offices), so by early Feb 2023, before the event; the market model is fit on 2022 only. | Not a problem | OK |
 | 17 | Survivorship and ticker reuse: returns are from CRSP (which keeps delisted SIVB and CMA), matched by PERMNO through the PERMCO, never by ticker. | Not a problem | OK |
 | 18 | Merges: every merge uses `validate=` and keys are asserted unique (`code/02`, `04`, `05`). | Not a problem | OK |
 | 19 | LLM leakage: no LLM produces data, labels or estimates; coding agents only wrote code, which is tested on fake data with hand-computed answers. | Not applicable | OK |
+
+### A2. The exact Skeptical review prompt (rerun 2026-11-14)
+
+Prompt, verbatim: _"Review this repo like a skeptical finance professor. Look for look-ahead bias and leakage, merges without validate, unit and frequency mismatches, hard-coded paths or keys, and steps that don't reproduce from run_all.py. List issues ranked by severity; don't fix anything yet."_
+
+Run by Mithran Moses with Claude Code on branch `v0-pipeline`, after the fixes in part B1. To check reproduction, `python run_all.py` was rerun from the inputs on disk: every file in `outputs/` came back identical except the clock time printed in the two `regression_*.txt` summaries. Findings, most severe first. Items A1 already covers are not repeated (SIVB's one-day CAR is finding 8; call report amendments are finding 10).
+
+| # | Finding | Real? | Status |
+|---|---|---|---|
+| 20 | **Look-ahead in the sample itself.** The 12 v0 banks were hand-picked after the event, including SIVB and regionals chosen because they "got hit hard" (`docs/internal/v0_plan_nov3_to_nov9.docx`). Picking banks on the outcome can build the result into the sample. | Real, disclosed (`DECISIONS.md`, "For the report") | Open: v1 uses every listed bank that passes fixed filters, set before looking at CARs (B2) |
+| 21 | **Unit mismatch in the uninsured share.** The numerator (RCON5597) comes only from subsidiaries with at least $1B in assets, but the denominator (RCON2200) sums every subsidiary, so JPM, CMA and WFC have a slightly understated share. | Real, disclosed (README threats, part D3) | Open: v1 robustness using reporting subsidiaries only (B2) |
+| 22 | **`python run_all.py --download` stops at step 01b.** The link table is now hand-checked, and `code/01b_build_link_table.py` refuses to overwrite a checked table, so the download path crashes. The default `python run_all.py` is not affected. | Real | Open (B2) |
+| 23 | Frequency: the market model is fit on daily 2022 returns and the CAR sums daily abnormal returns, both from CRSP `ret` with dividends, for banks and SPY alike. No mix of frequencies. | Not a problem | OK |
+| 24 | Units: dollar amounts are in $ thousands everywhere (call reports), and every ratio divides thousands by thousands. `log_total_assets` is the log of thousands, which shifts only the intercept. | Not a problem | OK |
+| 25 | Merges: every merge in `code/` (`01b`, `02`, `03`, `04`, `05`) uses `validate=`, and keys are asserted unique. The only `how="outer"` merges (call report schedule parts in `02`, delisting returns in `04`) are validated 1:1. | Not a problem | OK |
+| 26 | Hard-coded paths or keys: none. Paths are built from the repo root. The WRDS login is typed at a prompt and never saved; `.env` and raw WRDS and call report files are git-ignored. | Not a problem | OK |
+| 27 | Reproduction: `python run_all.py` rebuilds every output from the inputs on disk, byte for byte apart from the timestamps (rerun 2026-11-14). A rebuild from nothing still needs WRDS and two manual downloads (finding 15). | Not a problem | OK |
 
 ## B. Fixed in this PR, and still open
 
@@ -43,22 +62,25 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 - `requirements.txt` now requires `streamlit>=1.49`, checked against 1.48 (fails), 1.49, 1.50 and 1.67 (all four tabs render, no errors) (finding 6).
 - `n_est_days` corrected to 251 in this audit (finding 7).
 - This audit restructured to the HW8 format.
-- Dashboard live at https://team-helble-final-v0.streamlit.app/, linked at the top of the README (finding 5). Deployed from Lucas's fork because Streamlit Community Cloud needs repo admin, which a personal-account repo can't grant to collaborators.
+- Dashboard live at https://team-helble-final.streamlit.app/, linked at the top of the README (finding 5). First deployed from Lucas's fork (Streamlit Community Cloud needs repo admin); redeployed by Mithran from the team repo's `main` on 11/14, so it updates after each merge.
 
 ### B2. Still open, with the plan
 
 | Item | Plan | Who / when |
 |---|---|---|
 | Proposal disagrees with the code, claims checks not done, has a blank section (findings 1–3) | The team edits `PROPOSAL.md` so the method and threats match the repo, or says clearly what is planned for v1 and not yet done. Fill in the hypothesis section. Written by the team, not an agent (HW8). | Team, before submitting HW8 (Nov 14) |
-| Dashboard runs from Lucas's fork, not the team repo | Sync the fork after each merge to `main`. Mithran (repo owner) redeploys from the team repo so it updates on its own. | Mithran, by Nov 21 |
-| Skeptical review prompt | Rerun the exact Quick Reference prompt #5 and add new findings to part A. | Before the PR is final |
+| Dashboard runs from Lucas's fork, not the team repo | Done 11/14: Mithran redeployed from the team repo (`main`, `app.py`) at https://team-helble-final.streamlit.app/; all 4 tabs checked. | Done |
+| Skeptical review prompt | Done 11/14: exact prompt rerun, findings 20–27 in part A2. | Done |
+| Sample picked on the outcome (finding 20) | v1: take every listed bank that passes filters fixed in advance (assets, trading history, liquidity), log the filters in `specs_tried.md` before running the regression. | v1, Nov 21 |
+| Uninsured share numerator vs denominator (finding 21) | v1 robustness: compute the share over reporting subsidiaries only and compare. | v1, Nov 21 |
+| `run_all.py --download` stops at 01b (finding 22) | Take 01b out of the download steps (the link table is a hand-checked input now), or let 01b skip when a checked table exists. | Before v1, Nov 21 |
 | SIVB drives the regression (finding 8) | In v1, report the main spec with and without SIVB and log both in `specs_tried.md`. | v1, Nov 21 |
 | No hand check of a CAR (finding 9) | Recompute one bank's `car_0_2` (e.g. KEY) by hand in a spreadsheet from its CRSP rows and SPY, and record it in `audits/`. | v1, Nov 21 |
 | Call report amendments (finding 10) | Check the POR file's "last updated" date for the 19 filing banks; for any updated after Mar 9, 2023, find the originally filed values or flag the bank. | v1, Nov 21 |
 | Subsidiary sum vs. holding-company equity (finding 11) | Compare total equity and assets to the FR Y-9C for the 12 holding companies and report the gaps. | v1, Nov 21 |
 | CAR includes the sector move (finding 12) | Robustness: market model with a bank index next to SPY, logged in `specs_tried.md`. | v1 |
-| AFS-to-HTM transfer losses (finding 14) | Team decision: add the transfer loss back from AOCI disclosures for v1, or keep as a documented limitation. | Team, by Nov 21 |
-| MDRM check second sign-off | A second teammate reviews `audits/mdrm_check.md` and signs. | Before Nov 21 |
+| AFS-to-HTM transfer losses (finding 14) | Decided 11/14: kept as a stated limitation (`DECISIONS.md`). Robustness: main spec without ZION, `outputs/regression_drop_zion.csv` (`specs_tried.md` #5); coefficients barely move. In v1, rerun it and drop any other bank with a negative HTM loss. | Done for v0 (Mithran, 11/14) |
+| MDRM check second sign-off | Done 11/14: Mithran reviewed and signed `audits/mdrm_check.md` (script rerun, table and counts match). | Done |
 
 ## C. The 10-point checklist (`00_PROJECT_SEEDS`)
 
@@ -102,7 +124,7 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 | **Loss-ratio choice and double counting.** Main = (HTM loss + AFS loss) / (total equity + AFS loss). AFS losses are already deducted from book equity, so they are added back to the denominator (Jiang, Matvos, Piskorski & Seru 2023). Robustness = HTM loss / equity. | OK | `add_ratios()` in `code/02_build_bank_measures.py` |
 | **Holding company vs. subsidiary.** Dollar amounts are summed across each holding company's banks first, then ratios are computed. | OK | `aggregate_to_bhc()` in `code/02_build_bank_measures.py`; tested on fake data with hand-computed answers in `dev/check_fake_bhc_measures.py` |
 | **Uninsured deposits (RCON5597) are only reported by banks with at least $1B in assets.** Small subsidiaries add deposits but no uninsured amount, which slightly understates the share. | LIMITATION | `n_banks_uninsured_reported` vs `n_banks` in `outputs/bhc_measures_2022Q4.csv` (affects JPM, CMA, WFC through tiny trust/limited-purpose banks) |
-| **AFS-to-HTM transfers.** Losses on securities moved from AFS to HTM stay in equity (AOCI) and are left out of HTM cost minus fair value, so the loss ratio understates fragility for banks that transferred. Zions shows a negative HTM loss. | **OPEN** (team decision) | `htm_loss` for ZION in `outputs/bhc_measures_2022Q4.csv`; `STATUS.md` |
+| **AFS-to-HTM transfers.** Losses on securities moved from AFS to HTM stay in equity (AOCI) and are left out of HTM cost minus fair value, so the loss ratio understates fragility for banks that transferred. Zions shows a negative HTM loss. | LIMITATION (decided 11/14); robustness check done | `htm_loss` for ZION in `outputs/bhc_measures_2022Q4.csv`; `outputs/regression_drop_zion.csv`; `DECISIONS.md` |
 
 ### D4. Event study
 

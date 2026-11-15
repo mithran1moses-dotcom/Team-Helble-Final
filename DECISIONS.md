@@ -31,6 +31,7 @@ Running log of decisions and changes for the Bank Fragility project (Seed 6). Ow
 - AFS losses are added back to the denominator because they are already deducted from book equity.
 - Robustness: HTM loss only. Column names: main = `unreal_loss_to_adj_equity`; robustness = `htm_loss_to_equity`. CAR column = `car_0_2`.
 - ~~Change needed in `code/02_build_bank_measures.py`: currently divides by plain `total_equity`.~~ Done 11/7: the code now uses (total equity + AFS loss).
+- **Decided (Nov 14): AFS-to-HTM transfer losses stay a stated limitation; we do not add them back.** When a bank moves securities from AFS to HTM, the loss at the transfer sits in equity (AOCI), not in HTM cost minus fair value, so its loss ratio is understated (Zions shows a negative HTM loss). Robustness check: the main regression without ZION (`code/06b_robustness_drop_zion.py`, `specs_tried.md` #5).
 
 ## Data source
 

@@ -2,7 +2,7 @@
 
 **Team Helble** · Final project (Seed 6)
 
-> **Dashboard (live):** https://team-helble-final-v0.streamlit.app/ · built from `app.py` (reads only `outputs/`), deployed from the fork [lucas-808/Team-Helble-Final](https://github.com/lucas-808/Team-Helble-Final) · run locally with `streamlit run app.py`
+> **Dashboard (live):** https://team-helble-final.streamlit.app/ · built from `app.py` (reads only `outputs/`), deployed from this repo's `main` branch, so it updates after each merge · run locally with `streamlit run app.py`
 
 ## Question
 
@@ -115,6 +115,7 @@ python dev/check_fake_bhc_measures.py   # compares to hand-computed answers
 - **Entity mismatch:** the stock belongs to the holding company, but call reports are filed by the bank subsidiaries. We sum subsidiaries to the holding company using the link table.
 - **RSSD → ticker link quality:** 12 of 12 tickers matched to the NY Fed file, and all 21 link-table rows hand-checked (NIC, or FDIC 12/31/2022 records for banks that have since closed): `audits/link_check_sheet.md`. In v1 (about 100 banks) we will report the match rate and hand-check a sample.
 - **Uninsured deposits (RCON5597)** are reported only by banks with at least $1B in assets.
+- **AFS-to-HTM transfers:** losses locked in when a bank moved securities from AFS to HTM sit in equity (AOCI), not in HTM cost minus fair value, so the loss ratio understates fragility for those banks (Zions shows a negative HTM loss). Kept as a limitation; robustness check without ZION in `outputs/regression_drop_zion.csv` (`specs_tried.md` #5).
 - **Illiquid small banks:** their returns are noisy, so we apply size and liquidity filters (logged in `specs_tried.md`). Matters for v1, not the 12 large v0 banks.
 - **Day 0:** decided as Mar 9 (SVB's stock crashed). Mar 10 (SVB closed) is a possible robustness check.
 - **Convenience sample:** the 12 v0 banks were chosen knowing the outcome; v1 uses all listed banks.

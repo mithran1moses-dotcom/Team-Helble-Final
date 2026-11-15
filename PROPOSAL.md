@@ -22,6 +22,9 @@ Silicon Valley Bank’s collapse mattered well beyond one bank. It shook U.S. fi
 
 TEAM HYPOTHESIS AND THOUGHTS
 
+When discussing the innovation ecosystem, in particular Silicon Valley and the Bay Area at large, the main stakeholders that are discussed most prominently are startups and the venture capitalists, but what is not discussed is who holds the VC funds, and who holds the startup funds: banks like SVB, who often fly under the radar. Given the amount of coverage, study and scrutiny of the 2008 financial crisis, we as a team felt that the SVB banking crisis, which was the largest since 2008, deserved more attention and analysis to see if we can learn some lessons from the past and apply them to today, where VC rounds and startups are getting increasingly large.
+
+
 ## Necessary Data
 
 ##### **Unit of Observation**: A singular publicly traded U.S. Bank Holding Company (`bhc_rssd`).
@@ -57,8 +60,8 @@ Zions is the only bank in the sample with a negative HTM loss. This shows its he
 ### Sample Conditions
 * **Industry & listing status:** Publicly traded U.S. bank holding companies matched between FFIEC regulatory filings and CRSP equity returns.
 * **Sample scale:** A 12-bank verification sample (`JPM`, `BAC`, `WFC`, `USB`, `PNC`, `TFC`, `FITB`, `KEY`, `ZION`, `WAL`, `CMA`, `SIVB`) in v0. Expands to all eligible listed U.S. banks (~100 banks) for the full analysis.
-* **Asset reporting cutoff:* **Asset reporting cutoff:** Only banks with at least $/$1 billion in total assets report uninsured deposits on Call Reports, so banks below $/$1 billion have no uninsured deposit data.
-* **Return history & liquidity:** Banks must have complete 2022 daily return history to estimate market-model betas, plus minimum market-cap and trading-volume filters so thinly traded micro-cap stocks do not add noise.
+* **Asset reporting cutoff:** Only banks with at least \$1 billion in total assets report uninsured deposits on Call Reports, so banks below \$1 billion have no uninsured deposit data.
+* **Return history & liquidity:** Banks must have at least 200 days of 2022 daily returns to estimate market-model betas, plus minimum market-cap and trading-volume filters so thinly traded micro-cap stocks do not add noise.
 
 ### Must-Have and Nice-to-Have Variables
 * **Must-have variables:** We need to collect data on daily bank stock returns, `SPY` daily market returns, uninsured deposits, total deposits. Also track HTM and AFS amortized cost and fair value, book equity, and total assets.
@@ -99,16 +102,16 @@ Running `python run_all.py` rebuilds every intermediate table, regression output
 | 7 | `07_current_screen.py` *(planned)* | Apply Step 2 fragility ratios to the `09/30/2026` Call Report for the live dashboard screen |
 
 ### Statistical Model & Why It Fits
-To test whether unrealized securities losses amplify the stock-price penalty of uninsured deposit reliance during the March 2023 crisis, we estimate cross-sectional OLS regressions across all publicly traded U.S. BHCs ($N \approx 350$) using pre-crisis `12/31/2022` balance-sheet characteristics:
+To test whether unrealized securities losses amplify the stock-price penalty of uninsured deposit reliance during the March 2023 crisis, we estimate cross-sectional OLS regressions across all publicly traded U.S. BHCs ($N \approx 100$) using pre-crisis `12/31/2022` balance-sheet characteristics:
 
 $$\text{CAR}_i = \alpha + \beta_1 \text{UninsuredShare}_i + \beta_2 \text{LossRatio}_i + \beta_3 \left(\text{UninsuredShare}_i \times \text{LossRatio}_i\right) + \gamma' \mathbf{X}_i + \varepsilon_i$$
 
-* **Dependent Variable ($\text{CAR}_i$):** Cumulative abnormal return over the March 8–15, 2023 event window, estimated via a Fama-French 3-factor + KBW Bank Index market model over a 250-trading-day pre-event estimation window ending February 28, 2023.
-* **Key Regressors:** Mean-centered $\text{UninsuredShare}_i$ (uninsured domestic deposits / total deposits) and $\text{LossRatio}_i$ (AFS + HTM unrealized losses / Tier 1 capital), plus their interaction $\text{UninsuredShare}_i \times \text{LossRatio}_i$. A negative $\beta_3$ confirms that run sensitivity steepens as mark-to-market losses erode capital buffers.
-* **Controls ($\mathbf{X}_i$):** Log total assets, Tier 1 leverage ratio, cash-and-due-from-banks to assets, and loans-to-deposits, with HC3 heteroskedasticity-robust standard errors. We report the additive model in Column (1) and the full interaction specification in Column (2).
+* **Dependent Variable ($\text{CAR}_i$):** Cumulative abnormal return over March 9, 10, and 13, 2023 (days 0 to +2), estimated via a market model against SPY over calendar year 2022 (251 trading days).
+* **Key Regressors:** $\text{UninsuredShare}_i$ (uninsured domestic deposits / total deposits) and $\text{LossRatio}_i$ (AFS + HTM unrealized losses / (book equity + AFS losses)), plus their interaction $\text{UninsuredShare}_i \times \text{LossRatio}_i$. A negative $\beta_3$ confirms that run sensitivity steepens as mark-to-market losses erode capital buffers.
+* **Controls ($\mathbf{X}_i$):** Log total assets, with HC1 heteroskedasticity-robust standard errors. We report the additive model in Column (1) and the full interaction specification in Column (2). v0 runs only the additive model.
 
 #### Rationale for a Tight Three-Day Cross-Sectional Regression
-Short event windows isolate the market’s immediate reaction to run risk from unrelated shocks. Over the three trading days from March 8–10, 2023, banks’ balance sheets are fixed at their `12/31/2022` values. Management has no time to raise capital or restructure bond portfolios, meaning cross-sectional return differences reflect how investors judged each bank’s pre-existing exposure. A longer window would mix that initial repricing with new information. Examples include the March 12 policy interventions, the Credit Suisse shock, and banks actively changing their positions. Comparing banks against each other in a cross-section directly tests whether uninsured deposit share and unrealized bond losses explain which banks were punished more. This is all after controlling for bank size, capital, and baseline liquidity.
+Short event windows isolate the market’s immediate reaction to run risk from unrelated shocks. Over the three trading days March 9, 10, and 13, 2023, banks’ balance sheets are fixed at their `12/31/2022` values. Management has no time to raise capital or restructure bond portfolios, meaning cross-sectional return differences reflect how investors judged each bank’s pre-existing exposure. A longer window would mix that initial repricing with new information. Examples include the Credit Suisse shock on March 15 and banks actively changing their positions. Comparing banks against each other in a cross-section directly tests whether uninsured deposit share and unrealized bond losses explain which banks were punished more. This is all after controlling for bank size.
 
 
 ### Forward Looking Vulnerability Screen (`07_current_screen.py`)
@@ -122,12 +125,14 @@ To identify which listed BHCs exhibit March 2023 style fragility today, `07_curr
 | Potential Auditor Critique | How Our Design Handles It |
 |---|---|
 | **Call-report timing / look-ahead bias** | Event-study predictors come strictly from `12/31/2022` filings (and `03/31/2023` for the May 1 First Republic stretch event), ensuring zero post-shock information leaks into predictors. |
-| **ID link quality** | We join FFIEC NIC subsidiary-to-parent files with the NY Fed CRSP–FRB crosswalk, report the exact match rate, and manually verify a subsample against SEC 10-K filings. |
-| **Small, illiquid banks with noisy returns** | Banks under $\$1\text{B}$ are excluded because they do not report uninsured deposits, and we apply minimum market-cap and volume filters logged in `specs_tried.md`. |
-| **Survivorship bias** | Switching from `yfinance` to CRSP via WRDS retains delisted and failed banks (`SIVB`, `SBNY`, `FRC`, `PACW`, `CMA`) in the sample. |
-| **SIVB trading halt after March 9** | `SIVB` had no trades on March 10 (`price < 0` in CRSP) prior to FDIC receivership, so `04_event_study.py` drops March 10 and `SIVB`'s CAR reflects day 0 only. We flag `SIVB` and report regressions **with and without `SIVB`**. |
+| **ID link quality** | We join FFIEC NIC subsidiary-to-parent files with the NY Fed CRSP–FRB crosswalk, report the exact match rate, and hand-check the links. In v0 all 21 links were checked against NIC and FDIC records (`audits/link_check_sheet.md`). |
+| **Small, illiquid banks with noisy returns** | In v1, banks under $\$1\text{B}$ will be excluded because they do not report uninsured deposits, and we will apply minimum market-cap and volume filters logged in `specs_tried.md`. |
+| **Survivorship bias** | Switching from `yfinance` to CRSP via WRDS retains delisted and failed banks in the sample (`SIVB` and `CMA` in v0; `SBNY`, `FRC` and `PACW` in v1). |
+| **SIVB trading halt after March 9** | `SIVB` had no trades on March 10 (`price < 0` in CRSP) prior to FDIC receivership, so `04_event_study.py` drops March 10 and `SIVB`'s CAR reflects day 0 only. We flag `SIVB`, and in v1 we will report regressions **with and without `SIVB`**. |
 | **Partial subsidiary reporting** | Only bank subsidiaries with at least $1 billion in assets report uninsured deposits, but total deposits are summed over every subsidiary. A holding company with a non-reporting subsidiary (JPM, CMA and WFC in v0) can therefore have its uninsured share understated. In the full sample we also compute the share using only reporting subsidiaries and compare the two. |
 | **Specification searching & LLM leakage** | Every regression and chart specification is logged in `specs_tried.md`. A coding agent helped write pipeline scripts verified against hand-computed fake-data tests; no LLM generates data or estimates. |
+
+## Dashboard Mockup
 
 ![dashboard_mockup.png](images/dashboard_mockup.png)
 

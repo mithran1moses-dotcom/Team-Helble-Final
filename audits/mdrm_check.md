@@ -3,7 +3,7 @@
 Closes open item 3 in `audits/01_self_audit.md`.
 
 **Prepared:** 2026-11-11, by Lucas Koranda with Claude Code.
-**Reviewed by a person:** _name, date_ (read this file, rerun the script, and confirm the table matches).
+**Reviewed by a person:** Mithran Moses, 2026-11-14. Claude Code reran `dev/check_mdrm_codes.py` (MDRM downloaded 2026-11-14): all 14 codes found, names and forms match the table, and they match `FIELDS` in `code/02_build_bank_measures.py`. The counts in notes 2 and 5 were recomputed from `outputs/bank_measures_2022Q4.csv` and match.
 
 **Source:** Federal Reserve Micro Data Reference Manual (MDRM), <https://www.federalreserve.gov/apps/mdrm/pdf/MDRM.zip>, downloaded 2026-11-11.
 **Rerun:** `python dev/check_mdrm_codes.py`. This downloads the dictionary into `temp/`, which is git-ignored.
@@ -42,4 +42,4 @@ Every code used in `code/02_build_bank_measures.py` (`FIELDS`) is in force on 12
 ## What this check does not cover
 
 - It confirms the **codes**, not our **numbers**. The spot check that SVB's HTM loss ($15.2B), BAC's ($108.6B) and WFC's ($41.6B) match widely reported figures is still the evidence for the values.
-- It does not fix the AFS-to-HTM transfer issue (open item 4). The codes are right, but HTM amortized cost minus fair value leaves out losses that were locked in when securities were moved from AFS to HTM.
+- It does not fix the AFS-to-HTM transfer issue (kept as a limitation on 11/14; see `DECISIONS.md`). The codes are right, but HTM amortized cost minus fair value leaves out losses that were locked in when securities were moved from AFS to HTM.
