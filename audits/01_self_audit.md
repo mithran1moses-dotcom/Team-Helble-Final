@@ -25,7 +25,7 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 | 11 | Summing subsidiaries' equity is not the holding company's equity (parent-level debt and non-bank units are missing); the FR Y-9C has the consolidated holding-company numbers. | Real, disclosed ("Entity mismatch" in README) | Limitation; v1 comparison planned (B2) |
 | 12 | The CAR is measured against SPY, so it includes the move of the whole banking sector; the level of a CAR is not bank-specific. In a cross-sectional regression a shared shock mostly moves the intercept. | Real but minor | Limitation; robustness planned (B2) |
 | 13 | With 12 banks and 4 coefficients, the regression is a pipeline check, not evidence; only log assets is significant (p < 0.01; `outputs/regression_main.csv`), and the R² of 0.73 should not be read as fit. | Real, disclosed | Limitation until v1 |
-| 14 | Zions has a negative HTM loss (AFS-to-HTM transfer losses sit in AOCI, not in HTM cost minus fair value). | Real | Open (B2) |
+| 14 | Zions has a negative HTM loss (AFS-to-HTM transfer losses sit in AOCI, not in HTM cost minus fair value). | Real | Limitation; robustness check done 11/14 (B2) |
 | 15 | A full rebuild needs a WRDS login and two manual downloads, so an auditor without WRDS cannot rerun `code/03`. | Real, disclosed | Limitation (license) |
 | 16 | Look-ahead in timing: the 12/31/2022 call reports were due 30 days after quarter end (35 for banks with multiple foreign offices), so by early Feb 2023, before the event; the market model is fit on 2022 only. | Not a problem | OK |
 | 17 | Survivorship and ticker reuse: returns are from CRSP (which keeps delisted SIVB and CMA), matched by PERMNO through the PERMCO, never by ticker. | Not a problem | OK |
@@ -57,7 +57,7 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 | Call report amendments (finding 10) | Check the POR file's "last updated" date for the 19 filing banks; for any updated after Mar 9, 2023, find the originally filed values or flag the bank. | v1, Nov 21 |
 | Subsidiary sum vs. holding-company equity (finding 11) | Compare total equity and assets to the FR Y-9C for the 12 holding companies and report the gaps. | v1, Nov 21 |
 | CAR includes the sector move (finding 12) | Robustness: market model with a bank index next to SPY, logged in `specs_tried.md`. | v1 |
-| AFS-to-HTM transfer losses (finding 14) | Team decision: add the transfer loss back from AOCI disclosures for v1, or keep as a documented limitation. | Team, by Nov 21 |
+| AFS-to-HTM transfer losses (finding 14) | Decided 11/14: kept as a stated limitation (`DECISIONS.md`). Robustness: main spec without ZION, `outputs/regression_drop_zion.csv` (`specs_tried.md` #5); coefficients barely move. In v1, rerun it and drop any other bank with a negative HTM loss. | Done for v0 (Mithran, 11/14) |
 | MDRM check second sign-off | Done 11/14: Mithran reviewed and signed `audits/mdrm_check.md` (script rerun, table and counts match). | Done |
 
 ## C. The 10-point checklist (`00_PROJECT_SEEDS`)
@@ -102,7 +102,7 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 | **Loss-ratio choice and double counting.** Main = (HTM loss + AFS loss) / (total equity + AFS loss). AFS losses are already deducted from book equity, so they are added back to the denominator (Jiang, Matvos, Piskorski & Seru 2023). Robustness = HTM loss / equity. | OK | `add_ratios()` in `code/02_build_bank_measures.py` |
 | **Holding company vs. subsidiary.** Dollar amounts are summed across each holding company's banks first, then ratios are computed. | OK | `aggregate_to_bhc()` in `code/02_build_bank_measures.py`; tested on fake data with hand-computed answers in `dev/check_fake_bhc_measures.py` |
 | **Uninsured deposits (RCON5597) are only reported by banks with at least $1B in assets.** Small subsidiaries add deposits but no uninsured amount, which slightly understates the share. | LIMITATION | `n_banks_uninsured_reported` vs `n_banks` in `outputs/bhc_measures_2022Q4.csv` (affects JPM, CMA, WFC through tiny trust/limited-purpose banks) |
-| **AFS-to-HTM transfers.** Losses on securities moved from AFS to HTM stay in equity (AOCI) and are left out of HTM cost minus fair value, so the loss ratio understates fragility for banks that transferred. Zions shows a negative HTM loss. | **OPEN** (team decision) | `htm_loss` for ZION in `outputs/bhc_measures_2022Q4.csv`; `STATUS.md` |
+| **AFS-to-HTM transfers.** Losses on securities moved from AFS to HTM stay in equity (AOCI) and are left out of HTM cost minus fair value, so the loss ratio understates fragility for banks that transferred. Zions shows a negative HTM loss. | LIMITATION (decided 11/14); robustness check done | `htm_loss` for ZION in `outputs/bhc_measures_2022Q4.csv`; `outputs/regression_drop_zion.csv`; `DECISIONS.md` |
 
 ### D4. Event study
 

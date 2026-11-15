@@ -37,6 +37,7 @@ BUILD_STEPS = [
     ["code/04_event_study.py"],                                # CRSP returns -> car_0_2
     ["code/05_build_analysis_sample.py"],                      # merge -> analysis_sample.csv (12 rows)
     ["code/06_regression.py"],                                 # regression table and scatter
+    ["code/06b_robustness_drop_zion.py"],                      # robustness: main spec without ZION
 ]
 
 steps = (DOWNLOAD_STEPS if "--download" in sys.argv else []) + TEST_STEPS + BUILD_STEPS

@@ -42,4 +42,4 @@ Every code used in `code/02_build_bank_measures.py` (`FIELDS`) is in force on 12
 ## What this check does not cover
 
 - It confirms the **codes**, not our **numbers**. The spot check that SVB's HTM loss ($15.2B), BAC's ($108.6B) and WFC's ($41.6B) match widely reported figures is still the evidence for the values.
-- It does not fix the AFS-to-HTM transfer issue (open item 4). The codes are right, but HTM amortized cost minus fair value leaves out losses that were locked in when securities were moved from AFS to HTM.
+- It does not fix the AFS-to-HTM transfer issue (kept as a limitation on 11/14; see `DECISIONS.md`). The codes are right, but HTM amortized cost minus fair value leaves out losses that were locked in when securities were moved from AFS to HTM.
