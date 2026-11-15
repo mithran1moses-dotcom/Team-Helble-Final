@@ -24,7 +24,7 @@ Update this whenever a pipeline step is finished or blocked. Add the date and yo
 
 ## Blocked / waiting on
 
-- MDRM code check (`audits/mdrm_check.md`): needs a second reviewer's sign-off.
+- Nothing blocked. MDRM code check (`audits/mdrm_check.md`) signed off by Mithran on 11/14.
 
 ## Next up
 

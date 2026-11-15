@@ -58,7 +58,7 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 | Subsidiary sum vs. holding-company equity (finding 11) | Compare total equity and assets to the FR Y-9C for the 12 holding companies and report the gaps. | v1, Nov 21 |
 | CAR includes the sector move (finding 12) | Robustness: market model with a bank index next to SPY, logged in `specs_tried.md`. | v1 |
 | AFS-to-HTM transfer losses (finding 14) | Team decision: add the transfer loss back from AOCI disclosures for v1, or keep as a documented limitation. | Team, by Nov 21 |
-| MDRM check second sign-off | A second teammate reviews `audits/mdrm_check.md` and signs. | Before Nov 21 |
+| MDRM check second sign-off | Done 11/14: Mithran reviewed and signed `audits/mdrm_check.md` (script rerun, table and counts match). | Done |
 
 ## C. The 10-point checklist (`00_PROJECT_SEEDS`)
 
