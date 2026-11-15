@@ -2,7 +2,7 @@
 
 **Team Helble** · Final project (Seed 6)
 
-> **Dashboard (live):** https://team-helble-final-v0.streamlit.app/ · built from `app.py` (reads only `outputs/`), deployed from the fork [lucas-808/Team-Helble-Final](https://github.com/lucas-808/Team-Helble-Final) · run locally with `streamlit run app.py`
+> **Dashboard (live):** https://team-helble-final.streamlit.app/ · built from `app.py` (reads only `outputs/`), deployed from this repo's `main` branch, so it updates after each merge · run locally with `streamlit run app.py`
 
 ## Question
 

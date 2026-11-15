@@ -43,14 +43,14 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 - `requirements.txt` now requires `streamlit>=1.49`, checked against 1.48 (fails), 1.49, 1.50 and 1.67 (all four tabs render, no errors) (finding 6).
 - `n_est_days` corrected to 251 in this audit (finding 7).
 - This audit restructured to the HW8 format.
-- Dashboard live at https://team-helble-final-v0.streamlit.app/, linked at the top of the README (finding 5). Deployed from Lucas's fork because Streamlit Community Cloud needs repo admin, which a personal-account repo can't grant to collaborators.
+- Dashboard live at https://team-helble-final.streamlit.app/, linked at the top of the README (finding 5). First deployed from Lucas's fork (Streamlit Community Cloud needs repo admin); redeployed by Mithran from the team repo's `main` on 11/14, so it updates after each merge.
 
 ### B2. Still open, with the plan
 
 | Item | Plan | Who / when |
 |---|---|---|
 | Proposal disagrees with the code, claims checks not done, has a blank section (findings 1–3) | The team edits `PROPOSAL.md` so the method and threats match the repo, or says clearly what is planned for v1 and not yet done. Fill in the hypothesis section. Written by the team, not an agent (HW8). | Team, before submitting HW8 (Nov 14) |
-| Dashboard runs from Lucas's fork, not the team repo | Sync the fork after each merge to `main`. Mithran (repo owner) redeploys from the team repo so it updates on its own. | Mithran, by Nov 21 |
+| Dashboard runs from Lucas's fork, not the team repo | Done 11/14: Mithran redeployed from the team repo (`main`, `app.py`) at https://team-helble-final.streamlit.app/; all 4 tabs checked. | Done |
 | Skeptical review prompt | Rerun the exact Quick Reference prompt #5 and add new findings to part A. | Before the PR is final |
 | SIVB drives the regression (finding 8) | In v1, report the main spec with and without SIVB and log both in `specs_tried.md`. | v1, Nov 21 |
 | No hand check of a CAR (finding 9) | Recompute one bank's `car_0_2` (e.g. KEY) by hand in a spreadsheet from its CRSP rows and SPY, and record it in `audits/`. | v1, Nov 21 |
