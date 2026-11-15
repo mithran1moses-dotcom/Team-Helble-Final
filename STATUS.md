@@ -29,5 +29,5 @@ Update this whenever a pipeline step is finished or blocked. Add the date and yo
 ## Next up
 
 - Fill in the hypothesis section of `PROPOSAL.md` (facts fixed to match the repo on 11/14).
-- Rerun the exact Quick Reference Skeptical review prompt and add findings to `audits/01_self_audit.md` part A.
+- Skeptical review prompt rerun 11/14 (self-audit part A2). New open items: sample picked on the outcome, uninsured-share mismatch, `run_all.py --download` stops at 01b (plans in part B2).
 - v1 items with plans: `audits/01_self_audit.md` part B2.
