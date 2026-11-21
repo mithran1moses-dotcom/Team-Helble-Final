@@ -14,6 +14,12 @@ Outputs: outputs/bank_measures_<LABEL>.csv   one row per bank (bank_rssd)
 Usage:
     python code/02_build_bank_measures.py                 # defaults to 2022Q4 / 12312022
     python code/02_build_bank_measures.py FAKE 12312022   # test on fake data
+    python code/02_build_bank_measures.py 2026Q3 09302026 # latest quarter, for the dashboard's
+                                                          # "today" screen (instructor audit A3)
+
+Latest quarter: the link table is as of 12/31/2022. Holding companies whose
+linked banks no longer file (SIVB failed; CMA merged into FITB) are printed and
+dropped, instead of stopping the run as they would for 2022Q4.
 
 Measures (all from Schedules RC, RC-B, RC-O, in $ thousands as reported):
     total_assets         2170   (RC)
@@ -185,8 +191,13 @@ def build_measures(folder: Path, period: str) -> pd.DataFrame:
     return out
 
 
-def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str) -> pd.DataFrame:
-    """One row per holding company: sum its banks' dollar amounts, then compute ratios."""
+def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str,
+                     strict: bool = True) -> pd.DataFrame:
+    """One row per holding company: sum its banks' dollar amounts, then compute ratios.
+
+    strict=True (2022Q4, FAKE): every holding company must keep at least one bank.
+    strict=False (later quarters): holding companies with no filing bank are dropped.
+    """
     # Attach each linked bank's call report numbers. A linked bank that does not
     # file a call report (e.g. a non-insured-deposit trust company) is reported and dropped.
     link = link[["ticker", "bhc_name", "bhc_rssd", "bank_rssd"]]
@@ -210,7 +221,11 @@ def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str) -> pd
     bhc["report_period"] = period
 
     assert bhc["bhc_rssd"].is_unique and bhc["ticker"].is_unique
-    assert set(bhc["ticker"]) == set(link["ticker"]), "a holding company lost all its banks"
+    gone = sorted(set(link["ticker"]) - set(bhc["ticker"]))
+    if strict:
+        assert not gone, f"holding companies with no filing bank: {gone}"
+    elif gone:
+        print(f"  Holding companies with no filing bank this quarter (dropped): {gone}")
     return bhc
 
 
@@ -227,7 +242,7 @@ def main() -> None:
     print(f"Wrote {bank_path.relative_to(ROOT)}: {len(banks):,} banks")
     print(f"  with uninsured deposits reported: {banks['uninsured_deposits'].notna().sum():,}")
 
-    # Holding-company level: the v0 banks, via the link table.
+    # Holding-company level: the v0 banks, via the link table (as of 12/31/2022).
     if label == "FAKE":
         link_path = folder / "bank_link_FAKE.csv"
     else:
@@ -235,7 +250,8 @@ def main() -> None:
     link = pd.read_csv(link_path)
     assert link["bank_rssd"].is_unique
 
-    bhc = aggregate_to_bhc(banks, link, period)
+    # Only the event quarter (and the fake test) must keep all 12 holding companies.
+    bhc = aggregate_to_bhc(banks, link, period, strict=label in ("2022Q4", "FAKE"))
     bhc_path = ROOT / "outputs" / f"bhc_measures_{label}.csv"
     bhc.to_csv(bhc_path, index=False)
     print(f"Wrote {bhc_path.relative_to(ROOT)}: {len(bhc)} holding companies")

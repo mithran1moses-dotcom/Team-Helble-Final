@@ -29,6 +29,7 @@ For the "today" fragility screen, repeat with the latest available quarter into 
 |---|---|---|---|
 | 12/31/2022 | 2026-11-07 | Mithran (via Claude in Chrome) | `FFIEC CDR Call Bulk All Schedules 12312022.zip`, 51 files, CDR data as of 2026-09-15. RC-O now comes in 2 parts. |
 | 12/31/2022 | 2026-11-21 | Lucas (`code/00_download_call_reports.py`, with Claude Code) | Same 51 files, 6.9 MB zip, CDR data as of 2026-09-15 (same vintage as above). Rebuilding `02`–`06` from it reproduced every committed output (only the clock time in `regression_main.txt` differs). |
+| 09/30/2026 | 2026-11-21 | Lucas (`code/00_download_call_reports.py`, with Claude Code) | Latest quarter, for the dashboard's "today" screen (instructor audit A3). 48 files, CDR data as of 2026-11-14. Folder `2026Q3/`. |
 
 **Format notes:**
 - One file per schedule; big schedules are split into parts, e.g. `(1 of 2)`, `(2 of 2)`.

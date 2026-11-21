@@ -10,6 +10,7 @@ run_all.py: rebuild every file in outputs/ from the raw inputs, in order.
 Inputs that must be downloaded first (see each folder's README):
     inputs/call_reports/2022Q4/    FFIEC call reports, 12/31/2022: run
                                    code/00_download_call_reports.py 2022Q4 12/31/2022 (or --download)
+    inputs/call_reports/2026Q3/    FFIEC call reports, 09/30/2026 (latest): same script, 2026Q3 09/30/2026
     inputs/links/raw/nic/          FFIEC NIC relationships and attributes
     inputs/prices/crsp/            CRSP daily returns for all 12 banks and SPY: run
                                    code/03_download_crsp.py once (needs a WRDS login);
@@ -24,7 +25,8 @@ import sys
 
 # Each step is one script plus its arguments, in the order the pipeline needs.
 DOWNLOAD_STEPS = [
-    ["code/00_download_call_reports.py", "2022Q4", "12/31/2022"],
+    ["code/00_download_call_reports.py", "2022Q4", "12/31/2022"],  # event quarter
+    ["code/00_download_call_reports.py", "2026Q3", "09/30/2026"],  # latest quarter ("today" screen)
     ["code/01a_download_nyfed_link.py"],
     ["code/01b_build_link_table.py"],
     ["code/03_download_crsp.py"],
@@ -37,6 +39,7 @@ TEST_STEPS = [
 ]
 BUILD_STEPS = [
     ["code/02_build_bank_measures.py", "2022Q4", "12312022"],  # call reports -> bank and BHC measures
+    ["code/02_build_bank_measures.py", "2026Q3", "09302026"],  # latest quarter, for the "today" screen
     ["code/04_event_study.py"],                                # CRSP returns -> car_0_2
     ["code/05_build_analysis_sample.py"],                      # merge -> analysis_sample.csv (12 rows)
     ["code/06_regression.py"],                                 # regression table and scatter

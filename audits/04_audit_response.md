@@ -8,7 +8,7 @@ Draft started 2026-11-21 by Lucas Koranda with Claude Code, on branch `v0-pipeli
 |---|---|---|---|
 | A1 | SIVB is the event and also an observation, with a one-day CAR | **Fixed** | commit `6459083` |
 | A2 | Normal p-values and HC1 at small N | **Fixed** | commit `6459083` |
-| A3 | Proposal placeholder; "today" screen shows 2022 | **Open**, with a plan | below |
+| A3 | Proposal placeholder; "today" screen shows 2022 | **Partly fixed**: screen on 09/30/2026; hypothesis still open | below |
 | A4 | Call-report download not scripted; versions not pinned | **Partly fixed**: download scripted; versions still to pin | below |
 
 ## A1 · Fixed: failed banks are out of the main regression
@@ -42,22 +42,16 @@ Sources: `outputs/regression_main.csv` and `outputs/regression_with_failed.csv`.
 - `outputs/regression_main.txt` reports `Covariance Type: HC3` and t-statistics, with 7 residual degrees of freedom.
 - `log_total_assets` goes from p = 0.0001 (HC1, normal) to p = 0.02 (HC3, t₇).
 
-## A3 · Open: proposal hypothesis and the "today" screen
+## A3 · Partly fixed: the "today" screen uses the latest quarter; hypothesis still open
 
-**Still true today:**
-- `PROPOSAL.md:23` still reads "TEAM HYPOTHESIS AND THOUGHTS".
-- The fragility screen in `app.py` still filters the 12 v0 banks on 12/31/2022 measures.
+**Fixed: the screen shows the latest call reports.**
+- `code/00_download_call_reports.py 2026Q3 09/30/2026` pulls the 09/30/2026 call reports (CDR data as of 2026-11-14).
+- `code/02_build_bank_measures.py 2026Q3 09302026` builds `outputs/bhc_measures_2026Q3.csv`. Both steps are in `run_all.py`.
+- The dashboard's fragility screen opens on "Today: latest call reports (09/30/2026)". The date is read from the file's `report_period` column. The 12/31/2022 view, with each bank's CAR, is one click away.
+- **Banks that changed since 2023.** SIVB failed and CMA merged into FITB (Feb 2026), so neither has a filing bank in 09/30/2026. `02` prints and drops them for later quarters; for 2022Q4 it still stops if any holding company is missing. The screen names both. FITB's numbers now include Comerica's (total assets $300B in `bhc_measures_2026Q3.csv`, up from $206B in `bhc_measures_2022Q4.csv`).
+- **Limitation, disclosed in the README threats list.** Banks are linked to holding companies as of 12/31/2022, so subsidiaries added since are not captured. Updating this needs NIC relationships as of 2026.
 
-**Plan:**
-1. **Hypothesis.** The team writes the hypothesis section itself, not an agent, as HW8 asks. Owner: Riley, with the team.
-2. **"Today" screen:**
-   - Download the latest call reports (09/30/2026), using the script from A4.
-   - Run `code/02_build_bank_measures.py` on them → `outputs/bhc_measures_latest.csv`.
-   - Point the screen at that file and show its report date.
-   - Add a note that CMA merged into FITB in Feb 2026. That explanation is in PR #6, `audits/02_external_findings.md`, not yet merged.
-   - Owners: Lucas (download and measures), Mithran (dashboard).
-
-**Target:** the Nov 24 working groups. If it isn't done then, it will be listed as open in the v1 self-audit.
+**Still open: the hypothesis.** `PROPOSAL.md:23` still reads "TEAM HYPOTHESIS AND THOUGHTS". The team writes this section itself, not an agent, as HW8 asks. Owner: Riley, with the team. Target: the Nov 24 working groups.
 
 ## A4 · Partly fixed: call-report download scripted; versions not yet pinned
 
@@ -65,7 +59,7 @@ Sources: `outputs/regression_main.csv` and `outputs/regression_with_failed.csv`.
 - `code/00_download_call_reports.py` fills in the FFIEC form with the fields the audit lists (`ListBox1`, `DatesDropDownList`, `FormatType=TSVRadioButton`, `TabStrip1$Download_0`). One detail the audit didn't mention: the date list posts back a numeric ID, not the date, so the script looks the ID up from the date text.
 - `python code/00_download_call_reports.py 2022Q4 12/31/2022` gets all 51 files in about 2 seconds. It is the first step of `run_all.py --download`.
 - Checked on 2026-11-21: we reran `02`, `05` and `06` from the scripted download, and every committed output came out the same (only the clock time in `regression_main.txt` differs). The pull log in `inputs/call_reports/README.md` has the row.
-- The same script pulls the latest quarter (e.g. `2026Q3 09/30/2026`) for A3.
+- The same script pulls the latest quarter (`2026Q3 09/30/2026`) for A3.
 
 **Still open, with the plan:**
 1. **Pinned versions.** `requirements.txt` still has unpinned versions (`pandas>=2.0`, bare `numpy`, `wrds`, `statsmodels`, `matplotlib`). Plan: Pin `requirements.txt` with `pip freeze` from a clean environment that runs `run_all.py` and `app.py`. Streamlit stays ≥ 1.49 (`app.py` fails on 1.48). Owner: Riley.
