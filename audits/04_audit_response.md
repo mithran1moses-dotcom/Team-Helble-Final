@@ -9,7 +9,7 @@ Draft started 2026-11-21 by Lucas Koranda with Claude Code, on branch `v0-pipeli
 | A1 | SIVB is the event and also an observation, with a one-day CAR | **Fixed** | commit `6459083` |
 | A2 | Normal p-values and HC1 at small N | **Fixed** | commit `6459083` |
 | A3 | Proposal placeholder; "today" screen shows 2022 | **Partly fixed**: screen on 09/30/2026; hypothesis still open | below |
-| A4 | Call-report download not scripted; versions not pinned | **Fixed** (amendments check still open) | below |
+| A4 | Call-report download not scripted; versions not pinned | **Fixed**; amendments checked, look-ahead disclosed | below |
 
 ## A1 · Fixed: failed banks are out of the main regression
 
@@ -69,9 +69,13 @@ Sources: `outputs/regression_main.csv` and `outputs/regression_with_failed.csv`.
    - `05`, `06`, `06b` and `06c` (outputs match the committed ones to 1e-13);
    - `app.py` (no errors).
    Steps `03`–`04` need WRDS and were not rerun.
-2. **Data vintage and amendments.** The pull log now records that our bulk file says "CDR data as of 2026-09-15" (both the Nov 7 and Nov 21 pulls). That means it already includes any amendments filed after Mar 9, 2023. This is self-audit finding 10, confirmed in PR #6. Still open: the amendments check (POR "last updated" dates for every filer), v1 plan task 6. Owner: Lucas.
+2. **Data vintage and amendments: checked.** The pull log records that our bulk file says "CDR data as of 2026-09-15" (both the Nov 7 and Nov 21 pulls), so it includes later resubmissions. `dev/check_amendments.py` reads each bank's "last updated" date from the POR file (`audits/amendments_check.md`):
+   - For 9 of our 12 holding companies (all but SIVB, CMA and WFC), the main bank resubmitted its 12/31/2022 report after Mar 9, 2023, every time after the FDIC letter of Jul 24, 2023.
+   - So did 41% of all filers with assets ≥ $1B.
+   - The file shows when, not what changed.
+   - This confirms self-audit finding 10 and is disclosed in the README threats list. Next: carry the flag into the data, run the main spec without these banks, and look for as-filed values. Owner: Lucas.
 
-**Target for the amendments check:** the Nov 24 working groups.
+**Target for the amendments follow-up (flag, robustness row):** the Nov 24 working groups.
 
 ## Also from the audit
 

@@ -1,0 +1,5 @@
+group,n,n_updated_after_event,n_updated_after_fdic_letter,share_after_event
+our filing banks,19,9,9,0.47368421052631576
+our holding companies (any bank),12,9,9,0.75
+all filers,4756,973,441,0.20458368376787217
+all filers with assets >= $1B,986,407,269,0.4127789046653144
