@@ -78,11 +78,21 @@ docs/                       reference only: course instructions (docs/course/) a
 
 ## How to run
 
+Use Python 3.11 in a fresh virtual environment. `requirements.txt` pins every package to the exact version we tested.
+
+```bash
+python3.11 -m venv .venv
+```
+
+```bash
+source .venv/bin/activate
+```
+
 ```bash
 pip install -r requirements.txt
 ```
 
-1. Download the manual inputs: the 12/31/2022 call reports (`inputs/call_reports/README.md`) and the FFIEC NIC files (`inputs/links/README.md`).
+1. Download the inputs. The call reports are scripted: `python code/00_download_call_reports.py 2022Q4 12/31/2022`, and `2026Q3 09/30/2026` for the latest quarter (`inputs/call_reports/README.md`). The FFIEC NIC files are still manual (`inputs/links/README.md`).
 2. Pull the CRSP returns. **This needs a WRDS login** (the script asks for your username and password and stores nothing; approve the Duo push). See `inputs/prices/crsp/README.md`.
 
 ```bash

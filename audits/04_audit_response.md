@@ -9,7 +9,7 @@ Draft started 2026-11-21 by Lucas Koranda with Claude Code, on branch `v0-pipeli
 | A1 | SIVB is the event and also an observation, with a one-day CAR | **Fixed** | commit `6459083` |
 | A2 | Normal p-values and HC1 at small N | **Fixed** | commit `6459083` |
 | A3 | Proposal placeholder; "today" screen shows 2022 | **Partly fixed**: screen on 09/30/2026; hypothesis still open | below |
-| A4 | Call-report download not scripted; versions not pinned | **Partly fixed**: download scripted; versions still to pin | below |
+| A4 | Call-report download not scripted; versions not pinned | **Fixed** (amendments check still open) | below |
 
 ## A1 · Fixed: failed banks are out of the main regression
 
@@ -53,7 +53,7 @@ Sources: `outputs/regression_main.csv` and `outputs/regression_with_failed.csv`.
 
 **Still open: the hypothesis.** `PROPOSAL.md:23` still reads "TEAM HYPOTHESIS AND THOUGHTS". The team writes this section itself, not an agent, as HW8 asks. Owner: Riley, with the team. Target: the Nov 24 working groups.
 
-## A4 · Partly fixed: call-report download scripted; versions not yet pinned
+## A4 · Fixed: call-report download scripted; versions pinned
 
 **Fixed: the download is scripted.**
 - `code/00_download_call_reports.py` fills in the FFIEC form with the fields the audit lists (`ListBox1`, `DatesDropDownList`, `FormatType=TSVRadioButton`, `TabStrip1$Download_0`). One detail the audit didn't mention: the date list posts back a numeric ID, not the date, so the script looks the ID up from the date text.
@@ -61,11 +61,17 @@ Sources: `outputs/regression_main.csv` and `outputs/regression_with_failed.csv`.
 - Checked on 2026-11-21: we reran `02`, `05` and `06` from the scripted download, and every committed output came out the same (only the clock time in `regression_main.txt` differs). The pull log in `inputs/call_reports/README.md` has the row.
 - The same script pulls the latest quarter (`2026Q3 09/30/2026`) for A3.
 
-**Still open, with the plan:**
-1. **Pinned versions.** `requirements.txt` still has unpinned versions (`pandas>=2.0`, bare `numpy`, `wrds`, `statsmodels`, `matplotlib`). Plan: Pin `requirements.txt` with `pip freeze` from a clean environment that runs `run_all.py` and `app.py`. Streamlit stays ≥ 1.49 (`app.py` fails on 1.48). Owner: Riley.
+**Also:**
+1. **Pinned versions: fixed.** `requirements.txt` now lists every package at its exact version, from `pip freeze` in a fresh Python 3.11 environment. It includes `requests`, which `code/00` needs and which was missing before. In that environment we reran:
+   - the call-report download;
+   - the fake-data check;
+   - `02` for 2022Q4 and 2026Q3 (outputs byte-identical);
+   - `05`, `06`, `06b` and `06c` (outputs match the committed ones to 1e-13);
+   - `app.py` (no errors).
+   Steps `03`–`04` need WRDS and were not rerun.
 2. **Data vintage and amendments.** The pull log now records that our bulk file says "CDR data as of 2026-09-15" (both the Nov 7 and Nov 21 pulls). That means it already includes any amendments filed after Mar 9, 2023. This is self-audit finding 10, confirmed in PR #6. Still open: the amendments check (POR "last updated" dates for every filer), v1 plan task 6. Owner: Lucas.
 
-**Target:** the Nov 24 working groups.
+**Target for the amendments check:** the Nov 24 working groups.
 
 ## Also from the audit
 
