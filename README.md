@@ -53,6 +53,7 @@ PROPOSAL.md                 project proposal (HW8); images in images/
 specs_tried.md              log of every regression spec run
 run_all.py                  rebuilds every output in order (python run_all.py)
 code/                       numbered pipeline steps (run in order)
+  00_download_call_reports.py FFIEC call reports for one quarter → inputs/call_reports/<quarter>/ (git-ignored)
   01a_download_nyfed_link.py  NY Fed CRSP-FRB link file → inputs/links/raw/
   01b_build_link_table.py     ticker → holding company → bank subsidiaries (inputs/links/bank_link_v0.csv)
   02_build_bank_measures.py   call report bulk files → outputs/bank_measures_*.csv (per bank), outputs/bhc_measures_*.csv (per holding company)

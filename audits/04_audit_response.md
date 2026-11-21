@@ -9,7 +9,7 @@ Draft started 2026-11-21 by Lucas Koranda with Claude Code, on branch `v0-pipeli
 | A1 | SIVB is the event and also an observation, with a one-day CAR | **Fixed** | commit `6459083` |
 | A2 | Normal p-values and HC1 at small N | **Fixed** | commit `6459083` |
 | A3 | Proposal placeholder; "today" screen shows 2022 | **Open**, with a plan | below |
-| A4 | Call-report download not scripted; versions not pinned | **Open**, with a plan | below |
+| A4 | Call-report download not scripted; versions not pinned | **Partly fixed**: download scripted; versions still to pin | below |
 
 ## A1 · Fixed: failed banks are out of the main regression
 
@@ -59,16 +59,17 @@ Sources: `outputs/regression_main.csv` and `outputs/regression_with_failed.csv`.
 
 **Target:** the Nov 24 working groups. If it isn't done then, it will be listed as open in the v1 self-audit.
 
-## A4 · Open: scripted call-report download and pinned versions
+## A4 · Partly fixed: call-report download scripted; versions not yet pinned
 
-**Still true today:**
-- `inputs/call_reports/README.md` still describes a manual download.
-- `requirements.txt` still has unpinned versions (`pandas>=2.0`, bare `numpy`, `wrds`, `statsmodels`, `matplotlib`).
+**Fixed: the download is scripted.**
+- `code/00_download_call_reports.py` fills in the FFIEC form with the fields the audit lists (`ListBox1`, `DatesDropDownList`, `FormatType=TSVRadioButton`, `TabStrip1$Download_0`). One detail the audit didn't mention: the date list posts back a numeric ID, not the date, so the script looks the ID up from the date text.
+- `python code/00_download_call_reports.py 2022Q4 12/31/2022` gets all 51 files in about 2 seconds. It is the first step of `run_all.py --download`.
+- Checked on 2026-11-21: we reran `02`, `05` and `06` from the scripted download, and every committed output came out the same (only the clock time in `regression_main.txt` differs). The pull log in `inputs/call_reports/README.md` has the row.
+- The same script pulls the latest quarter (e.g. `2026Q3 09/30/2026`) for A3.
 
-**Plan:**
-1. **Download script.** Add `code/00_download_call_reports.py`, using the ASP.NET form fields the audit lists (`ListBox1`, `DatesDropDownList`, `FormatType=TSVRadioButton`, `TabStrip1$Download_0`). It pulls 12/31/2022 and the latest quarter, and is added to `run_all.py --download`. Owner: Lucas.
-2. **Pinned versions.** Pin `requirements.txt` with `pip freeze` from a clean environment that runs `run_all.py` and `app.py`. Streamlit stays ≥ 1.49 (`app.py` fails on 1.48). Owner: Riley.
-3. **Data vintage.** Record in the pull log that our bulk file says "CDR data as of 2026-09-15". That means it already includes any amendments filed after Mar 9, 2023. This is self-audit finding 10, confirmed in PR #6. The amendments check (POR "last updated" dates for every filer) is in the v1 plan, task 6. Owner: Lucas.
+**Still open, with the plan:**
+1. **Pinned versions.** `requirements.txt` still has unpinned versions (`pandas>=2.0`, bare `numpy`, `wrds`, `statsmodels`, `matplotlib`). Plan: Pin `requirements.txt` with `pip freeze` from a clean environment that runs `run_all.py` and `app.py`. Streamlit stays ≥ 1.49 (`app.py` fails on 1.48). Owner: Riley.
+2. **Data vintage and amendments.** The pull log now records that our bulk file says "CDR data as of 2026-09-15" (both the Nov 7 and Nov 21 pulls). That means it already includes any amendments filed after Mar 9, 2023. This is self-audit finding 10, confirmed in PR #6. Still open: the amendments check (POR "last updated" dates for every filer), v1 plan task 6. Owner: Lucas.
 
 **Target:** the Nov 24 working groups.
 
