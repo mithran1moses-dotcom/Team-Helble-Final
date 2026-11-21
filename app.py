@@ -84,7 +84,10 @@ with method:
     st.header("Regression")
     st.latex(r"CAR_i = a + b_1\,\text{uninsured share}_i + b_2\,\text{loss ratio}_i "
              r"+ b_3\,\log(\text{total assets}_i) + e_i")
-    st.write("Heteroskedasticity-robust (HC1) standard errors.")
+    st.write("Heteroskedasticity-robust (HC3) standard errors with t-based p-values "
+             "(better behaved than HC1 and normal p-values at small N). Banks that failed "
+             "inside the event window (SVB) are left out: their collapse is the shock, not a "
+             "reaction to it. The version with SVB is kept as a robustness check.")
 
 # ---------------------------------------------------------------- Analysis
 with analysis:
@@ -92,10 +95,17 @@ with analysis:
     n_obs = int(regression["n_obs"].iloc[0])
     st.write(f"{n_obs} banks: {regression['banks_used'].iloc[0]}. "
              f"R² = {regression['r_squared'].iloc[0]:.2f}.")
-    st.dataframe(regression[["term", "coef", "robust_se", "p_value"]].round(4),
+    st.dataframe(regression[["term", "coef", "robust_se", "t_stat", "p_value"]].round(4),
                  hide_index=True, width="content")
     st.info(f"With {n_obs} banks and 4 coefficients this is a pipeline check, not evidence.")
-    st.caption("Source: outputs/regression_main.csv")
+    st.caption("Source: outputs/regression_main.csv (failed banks excluded; HC3, t p-values)")
+
+    st.subheader("Robustness: with SVB put back in")
+    with_failed = pd.read_csv(OUT / "regression_with_failed.csv")
+    st.dataframe(with_failed[["term", "coef", "robust_se", "t_stat", "p_value"]].round(4),
+                 hide_index=True, width="content")
+    st.caption(f"{int(with_failed['n_obs'].iloc[0])} banks. "
+               "Source: outputs/regression_with_failed.csv")
 
     st.header("Securities losses vs. stock reaction")
     st.image(str(scatter_png), width="stretch")

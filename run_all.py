@@ -38,6 +38,7 @@ BUILD_STEPS = [
     ["code/05_build_analysis_sample.py"],                      # merge -> analysis_sample.csv (12 rows)
     ["code/06_regression.py"],                                 # regression table and scatter
     ["code/06b_robustness_drop_zion.py"],                      # robustness: main spec without ZION
+    ["code/06c_robustness_with_failed.py"],                    # robustness: main spec with SIVB put back
 ]
 
 steps = (DOWNLOAD_STEPS if "--download" in sys.argv else []) + TEST_STEPS + BUILD_STEPS

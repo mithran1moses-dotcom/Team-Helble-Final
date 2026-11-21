@@ -39,7 +39,7 @@ _(Real row from `outputs/analysis_sample.csv`, rebuilt 2026-11-09. Dollar amount
 **Timing rule:** bank characteristics come from the **12/31/2022** call report, the last one filed before the event, so there is no look-ahead.
 
 **Planned regression:**
-`car_0_2_i = a + b1·uninsured_dep_share + b2·unreal_loss_to_adj_equity + b3·log(total_assets) [+ b4·interaction] + e`, with robust standard errors.
+`car_0_2_i = a + b1·uninsured_dep_share + b2·unreal_loss_to_adj_equity + b3·log(total_assets) [+ b4·interaction] + e`, with HC3 robust standard errors and t-based p-values. Banks that failed inside the event window (SIVB in v0) are left out of the main spec and reported in a robustness run.
 
 **Chart sketch:** a scatter of `unreal_loss_to_adj_equity` (x) against `car_0_2` (y). Dot size shows `uninsured_dep_share`, and SVB-like banks are labeled.
 
@@ -59,7 +59,9 @@ code/                       numbered pipeline steps (run in order)
   03_download_crsp.py         CRSP daily returns via WRDS, 12 banks + SPY, matched by PERMNO → inputs/prices/crsp/ (git-ignored; needs WRDS login)
   04_event_study.py           market model vs SPY (CRSP returns) → outputs/car_0_2.csv
   05_build_analysis_sample.py link + measures + CARs → outputs/analysis_sample.csv (12 rows)
-  06_regression.py            regression (HC1) → outputs/regression_main.*, scatter → outputs/figures/
+  06_regression.py            regression, failed banks out (HC3, t p-values) → outputs/regression_main.*, scatter → outputs/figures/
+  06b_robustness_drop_zion.py    main spec without ZION → outputs/regression_drop_zion.*
+  06c_robustness_with_failed.py  main spec with SIVB put back in → outputs/regression_with_failed.*
 inputs/
   call_reports/               raw FFIEC bulk files (git-ignored; see README there for provenance)
   links/                      RSSD ↔ ticker links (hand map committed; raw NY Fed file git-ignored)
@@ -112,6 +114,7 @@ python dev/check_fake_bhc_measures.py   # compares to hand-computed answers
 - **One return source:** all 12 banks and SPY use CRSP `ret` via WRDS (matched by PERMNO, not ticker). Rebuilding needs a WRDS login; the raw data cannot be shared.
 - **CAR is a sum of simple daily abnormal returns.** For very large moves (WAL fell about 64% over the window) the sum is more negative than the compounded loss; a buy-and-hold abnormal return is a possible robustness check.
 - **SIVB stopped trading after Mar 9, 2023** (halted Mar 10, then seized), so its `car_0_2` covers only day 0 (Mar 9). CRSP lists a Mar 10 return for SIVB, but it is a bid/ask quote with no trade (negative price), so `code/04_event_study.py` drops it, along with any other no-trade day. SIVB's CAR is not comparable to the other banks' three-day CARs; the `note` column in `outputs/car_0_2.csv` flags it.
+- **Failed banks are the shock, not a response to it.** SIVB (and SBNY in v1) failed inside the event window, and SIVB's CAR covers day 0 only, so they are flagged `failed_in_window` in `outputs/analysis_sample.csv` and left out of the main regression (instructor audit A1). With N = 12 SIVB alone flipped the sign of the loss-ratio slope; the with-SIVB run is kept in `outputs/regression_with_failed.csv`.
 - **Entity mismatch:** the stock belongs to the holding company, but call reports are filed by the bank subsidiaries. We sum subsidiaries to the holding company using the link table.
 - **RSSD → ticker link quality:** 12 of 12 tickers matched to the NY Fed file, and all 21 link-table rows hand-checked (NIC, or FDIC 12/31/2022 records for banks that have since closed): `audits/link_check_sheet.md`. In v1 (about 100 banks) we will report the match rate and hand-check a sample.
 - **Uninsured deposits (RCON5597)** are reported only by banks with at least $1B in assets.
