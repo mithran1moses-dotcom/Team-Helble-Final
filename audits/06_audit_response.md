@@ -59,7 +59,7 @@ The A1–A4 fixes, the 2026Q3 screen and the B3 work exist only on PR #9 (`v0-pi
 - **Scope check.** A 10-K figure stands in for the original call report only when it uses call-report scope (U.S. offices, regulatory method). It passes for CMA and SIVB, which never resubmitted: they match their call reports to within $0.1bn. WFC, also never resubmitted but with consolidated scope, is 29% off. So JPM, BAC and USB (consolidated or firmwide figures) get no as-filed value.
 - **What changed** (`code/05b_asfiled_uninsured.py` → `outputs/asfiled_uninsured_comparison.csv`). Since filing, uninsured deposits in the call report rose 27% for FITB and 13% for KEY. They moved less than 6% for PNC, TFC, WAL and ZION.
 - **Robustness row** (`code/06e_robustness_asfiled_uninsured.py`, `specs_tried.md` #11 → `outputs/regression_asfiled_uninsured.csv`). This reruns the main spec with the as-filed share where available. The uninsured slope goes from −0.15 (p = 0.89) to −0.40 (p = 0.77); the loss-ratio and size slopes barely move. The README threats list says so.
-- **Still open for v1:** the 10-K figures for the full sample, or a stated rule for banks without a same-scope figure. The FR Y-9C has no uninsured-deposit item to use instead (not checked yet). Owner: Lucas.
+- **Still open for v1:** the 10-K figures for the full sample, or a stated rule for banks without a same-scope figure. Whether the FR Y-9C has a usable uninsured-deposit item is not checked yet. Owner: Lucas.
 
 ## B4 · Open: our own CAR hand check
 
