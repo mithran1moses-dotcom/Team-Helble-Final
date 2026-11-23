@@ -17,6 +17,8 @@ FAKEB = bank 3 only (bank 4 files no call report and is dropped):
     unreal_loss_to_adj_equity = (0 + 10) / (80 + 10)
     htm_loss_to_equity        = 0 / 80
     uninsured_dep_share       = missing (bank 3 is too small to report it)
+last_updated_max = the latest resubmission date among a holding company's banks:
+    FAKEA = bank 2's 2024-06-20 (later than bank 1's 2023-01-30); FAKEB = bank 3's 2023-02-14
 """
 
 from pathlib import Path
@@ -32,6 +34,7 @@ assert a["n_banks"] == 2
 assert abs(a["unreal_loss_to_adj_equity"] - 78_000 / 288_000) < 1e-9
 assert abs(a["htm_loss_to_equity"] - 55_000 / 265_000) < 1e-9
 assert abs(a["uninsured_dep_share"] - 1_050_000 / 2_170_000) < 1e-9
+assert a["last_updated_max"] == "2024-06-20 18:48:41"
 
 # FAKEB: one filing bank; the non-filing bank was dropped.
 b = bhc.loc["FAKEB"]
@@ -39,5 +42,6 @@ assert b["n_banks"] == 1
 assert abs(b["unreal_loss_to_adj_equity"] - 10 / 90) < 1e-9
 assert b["htm_loss_to_equity"] == 0
 assert pd.isna(b["uninsured_dep_share"])
+assert b["last_updated_max"] == "2023-02-14 15:23:52"
 
 print("All fake-data checks passed.")

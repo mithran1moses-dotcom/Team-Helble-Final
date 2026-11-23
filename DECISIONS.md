@@ -25,6 +25,19 @@ Running log of decisions and changes for the Bank Fragility project (Seed 6). Ow
 - The README says \~100 banks; that is the v1 target, not v0. PACW is not in v0.
 - **Unit of observation: bank holding company.** Collapse subsidiaries: sum dollar amounts across each holding company's bank subsidiaries first, then compute ratios.
 
+## Failed-bank rule and inference (decided Nov 21, instructor audit A1 and A2)
+
+- **Banks that failed inside the event window (Mar 9–13, 2023) are out of the main regression:** SIVB (seized Mar 10) and SBNY (closed Mar 12; v1 only). Their collapse is the shock, not a reaction to it, and SIVB's CAR covers day 0 only.
+- They stay in `outputs/analysis_sample.csv`, flagged by the column `failed_in_window`, and are reported in a robustness run with them put back in (`code/06c_robustness_with_failed.py`).
+- FRC failed May 1, 2023, outside the window, so this rule keeps it in. Team to confirm before the v1 run.
+- **Standard errors: HC3 with t-based p-values** (`fit(cov_type="HC3", use_t=True)`), replacing HC1 with normal p-values, for every regression.
+
+## Resubmitted call reports (decided Nov 23, instructor audit B3)
+
+- The FFIEC bulk file holds the latest version of each 12/31/2022 call report. `code/02` keeps each bank's last-resubmission date (`last_updated`) and the latest date among a holding company's banks (`last_updated_max`).
+- `code/05` sets `resubmitted_after_event` = `last_updated_max` after Mar 9, 2023 (day 0). In v0 that is 9 of 12 holding companies (`audits/amendments_check.md`).
+- The main spec keeps these banks; we have no as-filed values to replace them with. `code/06d_robustness_not_resubmitted.py` reruns the main spec without them. It needs at least 10 banks, so it is not estimated at v0 (2 banks) and runs in v1.
+
 ## Loss ratio
 
 - **Decided: main measure = (HTM loss + AFS loss) / (total equity + AFS loss).** Follows Jiang, Matvos, Piskorski & Seru (2023).

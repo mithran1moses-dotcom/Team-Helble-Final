@@ -14,6 +14,12 @@ Outputs: outputs/bank_measures_<LABEL>.csv   one row per bank (bank_rssd)
 Usage:
     python code/02_build_bank_measures.py                 # defaults to 2022Q4 / 12312022
     python code/02_build_bank_measures.py FAKE 12312022   # test on fake data
+    python code/02_build_bank_measures.py 2026Q3 09302026 # latest quarter, for the dashboard's
+                                                          # "today" screen (instructor audit A3)
+
+Latest quarter: the link table is as of 12/31/2022. Holding companies whose
+linked banks no longer file (SIVB failed; CMA merged into FITB) are printed and
+dropped, instead of stopping the run as they would for 2022Q4.
 
 Measures (all from Schedules RC, RC-B, RC-O, in $ thousands as reported):
     total_assets         2170   (RC)
@@ -37,6 +43,11 @@ Measures (all from Schedules RC, RC-B, RC-O, in $ thousands as reported):
 
 Holding-company rule (DECISIONS.md): sum the dollar amounts across a BHC's
 banks first, then compute the ratios from the sums.
+
+Resubmissions (instructor audit B3): the bulk file holds the latest version of
+each report. last_updated (from the POR file) is when the bank last resubmitted
+it; last_updated_max is the latest date among a holding company's banks.
+code/05 turns that into the resubmitted_after_event flag.
 
 VERIFY every MDRM code against the FFIEC data dictionary / report form
 instructions for the period you pulled before trusting the output.
@@ -122,12 +133,17 @@ def read_por(folder: Path, period: str) -> pd.DataFrame:
         "FDIC Certificate Number": "fdic_cert",
         "Financial Institution State": "state",
         "Financial Institution Filing Type": "filing_type",
+        "Last Date/Time Submission Updated On": "last_updated",
     }
     present = {k: v for k, v in keep.items() if k in por.columns}
     missing = set(keep) - set(present)
     if missing:
         print(f"  note: POR columns not found (check names): {sorted(missing)}")
-    return por[list(present)].rename(columns=present)
+    por = por[list(present)].rename(columns=present)
+    # Every bank must have a last-resubmission date: the B3 flag depends on it.
+    por["last_updated"] = pd.to_datetime(por["last_updated"].str.strip().str.strip('"'))
+    assert por["last_updated"].notna().all(), "a bank has no last-updated date"
+    return por
 
 
 def pick_first_available(df: pd.DataFrame, codes: list[str]) -> pd.Series:
@@ -185,8 +201,13 @@ def build_measures(folder: Path, period: str) -> pd.DataFrame:
     return out
 
 
-def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str) -> pd.DataFrame:
-    """One row per holding company: sum its banks' dollar amounts, then compute ratios."""
+def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str,
+                     strict: bool = True) -> pd.DataFrame:
+    """One row per holding company: sum its banks' dollar amounts, then compute ratios.
+
+    strict=True (2022Q4, FAKE): every holding company must keep at least one bank.
+    strict=False (later quarters): holding companies with no filing bank are dropped.
+    """
     # Attach each linked bank's call report numbers. A linked bank that does not
     # file a call report (e.g. a non-insured-deposit trust company) is reported and dropped.
     link = link[["ticker", "bhc_name", "bhc_rssd", "bank_rssd"]]
@@ -199,9 +220,11 @@ def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str) -> pd
 
     # Count banks behind each holding company, and how many report uninsured deposits.
     # min_count=1 keeps the sum missing when none of a BHC's banks reports a value.
+    # Also keep the latest resubmission date among each holding company's banks.
     bhc = merged.groupby(["bhc_rssd", "ticker", "bhc_name"], as_index=False).agg(
         n_banks=("bank_rssd", "count"),
         n_banks_uninsured_reported=("uninsured_deposits", "count"),
+        last_updated_max=("last_updated", "max"),
     )
     sums = merged.groupby("bhc_rssd")[DOLLAR_COLS].sum(min_count=1).reset_index()
     bhc = bhc.merge(sums, on="bhc_rssd", how="left", validate="1:1")
@@ -210,7 +233,11 @@ def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str) -> pd
     bhc["report_period"] = period
 
     assert bhc["bhc_rssd"].is_unique and bhc["ticker"].is_unique
-    assert set(bhc["ticker"]) == set(link["ticker"]), "a holding company lost all its banks"
+    gone = sorted(set(link["ticker"]) - set(bhc["ticker"]))
+    if strict:
+        assert not gone, f"holding companies with no filing bank: {gone}"
+    elif gone:
+        print(f"  Holding companies with no filing bank this quarter (dropped): {gone}")
     return bhc
 
 
@@ -227,7 +254,7 @@ def main() -> None:
     print(f"Wrote {bank_path.relative_to(ROOT)}: {len(banks):,} banks")
     print(f"  with uninsured deposits reported: {banks['uninsured_deposits'].notna().sum():,}")
 
-    # Holding-company level: the v0 banks, via the link table.
+    # Holding-company level: the v0 banks, via the link table (as of 12/31/2022).
     if label == "FAKE":
         link_path = folder / "bank_link_FAKE.csv"
     else:
@@ -235,7 +262,8 @@ def main() -> None:
     link = pd.read_csv(link_path)
     assert link["bank_rssd"].is_unique
 
-    bhc = aggregate_to_bhc(banks, link, period)
+    # Only the event quarter (and the fake test) must keep all 12 holding companies.
+    bhc = aggregate_to_bhc(banks, link, period, strict=label in ("2022Q4", "FAKE"))
     bhc_path = ROOT / "outputs" / f"bhc_measures_{label}.csv"
     bhc.to_csv(bhc_path, index=False)
     print(f"Wrote {bhc_path.relative_to(ROOT)}: {len(bhc)} holding companies")

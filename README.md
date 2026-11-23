@@ -36,10 +36,10 @@ _(Real row from `outputs/analysis_sample.csv`, rebuilt 2026-11-09. Dollar amount
 
 **Why days 0 to +2:** the window covers SVB's stock crash (Mar 9), its seizure (Mar 10), and the Signature Bank closure and federal backstop (announced Sunday Mar 12, first traded Mar 13). It stops before the Credit Suisse shock on Mar 15. A longer window (e.g. 0 to +4) can be a robustness check, logged in `specs_tried.md`.
 
-**Timing rule:** bank characteristics come from the **12/31/2022** call report, the last one filed before the event, so there is no look-ahead.
+**Timing rule:** bank characteristics come from the **12/31/2022** call report, the last one filed before the event. **Caveat:** we use the current version of that report, and for 9 of our 12 holding companies the main bank resubmitted it after Mar 9, 2023 (`audits/amendments_check.md`), so some values may differ from what the market saw.
 
 **Planned regression:**
-`car_0_2_i = a + b1·uninsured_dep_share + b2·unreal_loss_to_adj_equity + b3·log(total_assets) [+ b4·interaction] + e`, with robust standard errors.
+`car_0_2_i = a + b1·uninsured_dep_share + b2·unreal_loss_to_adj_equity + b3·log(total_assets) [+ b4·interaction] + e`, with HC3 robust standard errors and t-based p-values. Banks that failed inside the event window (SIVB in v0) are left out of the main spec and reported in a robustness run.
 
 **Chart sketch:** a scatter of `unreal_loss_to_adj_equity` (x) against `car_0_2` (y). Dot size shows `uninsured_dep_share`, and SVB-like banks are labeled.
 
@@ -53,13 +53,19 @@ PROPOSAL.md                 project proposal (HW8); images in images/
 specs_tried.md              log of every regression spec run
 run_all.py                  rebuilds every output in order (python run_all.py)
 code/                       numbered pipeline steps (run in order)
+  00_download_call_reports.py FFIEC call reports for one quarter → inputs/call_reports/<quarter>/ (git-ignored)
   01a_download_nyfed_link.py  NY Fed CRSP-FRB link file → inputs/links/raw/
   01b_build_link_table.py     ticker → holding company → bank subsidiaries (inputs/links/bank_link_v0.csv)
   02_build_bank_measures.py   call report bulk files → outputs/bank_measures_*.csv (per bank), outputs/bhc_measures_*.csv (per holding company)
   03_download_crsp.py         CRSP daily returns via WRDS, 12 banks + SPY, matched by PERMNO → inputs/prices/crsp/ (git-ignored; needs WRDS login)
   04_event_study.py           market model vs SPY (CRSP returns) → outputs/car_0_2.csv
   05_build_analysis_sample.py link + measures + CARs → outputs/analysis_sample.csv (12 rows)
-  06_regression.py            regression (HC1) → outputs/regression_main.*, scatter → outputs/figures/
+  06_regression.py            regression, failed banks out (HC3, t p-values) → outputs/regression_main.*, scatter → outputs/figures/
+  06b_robustness_drop_zion.py    main spec without ZION → outputs/regression_drop_zion.*
+  06c_robustness_with_failed.py  main spec with SIVB put back in → outputs/regression_with_failed.*
+  06d_robustness_not_resubmitted.py  main spec on reports not resubmitted after the event → outputs/regression_not_resubmitted.*
+  05b_asfiled_uninsured.py    10-K (as-filed) vs current uninsured deposits → outputs/asfiled_uninsured_comparison.csv
+  06e_robustness_asfiled_uninsured.py  main spec with the as-filed uninsured share → outputs/regression_asfiled_uninsured.*
 inputs/
   call_reports/               raw FFIEC bulk files (git-ignored; see README there for provenance)
   links/                      RSSD ↔ ticker links (hand map committed; raw NY Fed file git-ignored)
@@ -75,11 +81,21 @@ docs/                       reference only: course instructions (docs/course/) a
 
 ## How to run
 
+Use Python 3.11 in a fresh virtual environment. `requirements.txt` pins every package to the exact version we tested.
+
+```bash
+python3.11 -m venv .venv
+```
+
+```bash
+source .venv/bin/activate
+```
+
 ```bash
 pip install -r requirements.txt
 ```
 
-1. Download the manual inputs: the 12/31/2022 call reports (`inputs/call_reports/README.md`) and the FFIEC NIC files (`inputs/links/README.md`).
+1. Download the inputs. The call reports are scripted: `python code/00_download_call_reports.py 2022Q4 12/31/2022`, and `2026Q3 09/30/2026` for the latest quarter (`inputs/call_reports/README.md`). The FFIEC NIC files are still manual (`inputs/links/README.md`).
 2. Pull the CRSP returns. **This needs a WRDS login** (the script asks for your username and password and stores nothing; approve the Duo push). See `inputs/prices/crsp/README.md`.
 
 ```bash
@@ -112,6 +128,9 @@ python dev/check_fake_bhc_measures.py   # compares to hand-computed answers
 - **One return source:** all 12 banks and SPY use CRSP `ret` via WRDS (matched by PERMNO, not ticker). Rebuilding needs a WRDS login; the raw data cannot be shared.
 - **CAR is a sum of simple daily abnormal returns.** For very large moves (WAL fell about 64% over the window) the sum is more negative than the compounded loss; a buy-and-hold abnormal return is a possible robustness check.
 - **SIVB stopped trading after Mar 9, 2023** (halted Mar 10, then seized), so its `car_0_2` covers only day 0 (Mar 9). CRSP lists a Mar 10 return for SIVB, but it is a bid/ask quote with no trade (negative price), so `code/04_event_study.py` drops it, along with any other no-trade day. SIVB's CAR is not comparable to the other banks' three-day CARs; the `note` column in `outputs/car_0_2.csv` flags it.
+- **Failed banks are the shock, not a response to it.** SIVB (and SBNY in v1) failed inside the event window, and SIVB's CAR covers day 0 only, so they are flagged `failed_in_window` in `outputs/analysis_sample.csv` and left out of the main regression (instructor audit A1). With N = 12 SIVB alone flipped the sign of the loss-ratio slope; the with-SIVB run is kept in `outputs/regression_with_failed.csv`.
+- **"Today" screen uses the 12/31/2022 link table.** The dashboard's latest-quarter view (09/30/2026, `outputs/bhc_measures_2026Q3.csv`) sums the same bank subsidiaries as in 2022. SIVB (failed) and CMA (merged into FITB, Feb 2026) no longer have a filing bank and are dropped; FITB's numbers include Comerica's. Subsidiaries a holding company added after 2022 are not captured; that needs NIC relationships as of 2026.
+- **Call reports resubmitted after the event (look-ahead):** the FFIEC bulk file holds the latest version of each 12/31/2022 report. 9 of our 12 holding companies (all but SIVB, CMA, WFC) have a main bank that resubmitted after Mar 9, 2023, all after the FDIC's Jul 24, 2023 letter on uninsured deposits; so did 41% of all filers with assets ≥ $1B. The file shows when, not what changed. They are flagged `resubmitted_after_event` in `outputs/analysis_sample.csv`, and `code/06d` reruns the main spec without them: not estimable at v0 (2 banks left), runs in v1 (`audits/amendments_check.md`). **As-filed check (11/23):** each bank's 10-K, filed Feb 2023, gives its uninsured deposits as the market saw them (`inputs/asfiled/`). Where the 10-K uses call-report scope, the current call report is higher for FITB (+27%) and KEY (+13%) and within 6% for PNC, TFC, WAL and ZION (`outputs/asfiled_uninsured_comparison.csv`). Using the as-filed share moves the uninsured slope from −0.15 to −0.40, still far from significant (`outputs/regression_asfiled_uninsured.csv`, `specs_tried.md` #11).
 - **Entity mismatch:** the stock belongs to the holding company, but call reports are filed by the bank subsidiaries. We sum subsidiaries to the holding company using the link table.
 - **RSSD → ticker link quality:** 12 of 12 tickers matched to the NY Fed file, and all 21 link-table rows hand-checked (NIC, or FDIC 12/31/2022 records for banks that have since closed): `audits/link_check_sheet.md`. In v1 (about 100 banks) we will report the match rate and hand-check a sample.
 - **Uninsured deposits (RCON5597)** are reported only by banks with at least $1B in assets.

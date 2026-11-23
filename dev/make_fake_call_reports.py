@@ -26,13 +26,15 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 # Bank 1: big 031 filer (RCFD). Bank 2: SVB-like 041 filer (RCON only).
 # Bank 3: small 051 filer, no uninsured-deposit field reported.
+# Last-updated dates: bank 2 resubmitted after the event (Mar 9, 2023); banks 1 and 3 did not.
 write(f"FFIEC CDR Call Bulk POR {P}.txt",
       ["IDRSSD", "FDIC Certificate Number", "Financial Institution Name",
-       "Financial Institution State", "Financial Institution Filing Type"],
-      ["", "", "", "", ""],
-      [[1, 101, "FAKE BIG BANK NA", "NY", "031"],
-       [2, 102, "FAKE REGIONAL BANK", "CA", "041"],
-       [3, 103, "FAKE COMMUNITY BANK", "PA", "051"]])
+       "Financial Institution State", "Financial Institution Filing Type",
+       "Last Date/Time Submission Updated On"],
+      ["", "", "", "", "", ""],
+      [[1, 101, "FAKE BIG BANK NA", "NY", "031", "2023-01-30T10:00:00"],
+       [2, 102, "FAKE REGIONAL BANK", "CA", "041", "2024-06-20T18:48:41"],
+       [3, 103, "FAKE COMMUNITY BANK", "PA", "051", "2023-02-14T15:23:52"]])
 
 write(f"FFIEC CDR Call Schedule RC {P}.txt",
       ["IDRSSD", "RCFD2170", "RCON2170", "RCFD3210", "RCON3210", "RCON2200"],

@@ -23,7 +23,7 @@ What was rerun on 2026-11-14: the fake-data test (`dev/check_fake_bhc_measures.p
 | 7 | This audit said `n_est_days` = 250; `outputs/car_0_2.csv` says 251. | Real (docs only) | Fixed (B1) |
 | 8 | **SIVB is in the regression with a one-day CAR, and it is the failing bank itself.** It has by far the largest loss ratio (0.98) and uninsured share (0.94), so with N = 12 it can drive the slopes. | Real | Open (B2) |
 | 9 | **No independent hand check of a CAR.** Steps 01 (link table) and 02 (measures, fake data and MDRM check) have one; step 04 (event study) does not. | Real | Open (B2) |
-| 10 | **Call report amendments.** The FFIEC bulk files we downloaded in Nov 2026 show the latest amended values. If a bank amended its 12/31/2022 report after Mar 9, 2023, we use numbers the market did not have. | Plausible, not checked | Open (B2) |
+| 10 | **Call report amendments.** The FFIEC bulk files we downloaded in Nov 2026 show the latest amended values. If a bank amended its 12/31/2022 report after Mar 9, 2023, we use numbers the market did not have. | Real (checked 11/21: 9 of 12 holding companies; `audits/amendments_check.md`) | Open (B2) |
 | 11 | Summing subsidiaries' equity is not the holding company's equity (parent-level debt and non-bank units are missing); the FR Y-9C has the consolidated holding-company numbers. | Real, disclosed ("Entity mismatch" in README) | Limitation; v1 comparison planned (B2) |
 | 12 | The CAR is measured against SPY, so it includes the move of the whole banking sector; the level of a CAR is not bank-specific. In a cross-sectional regression a shared shock mostly moves the intercept. | Real but minor | Limitation; robustness planned (B2) |
 | 13 | With 12 banks and 4 coefficients, the regression is a pipeline check, not evidence; only log assets is significant (p < 0.01; `outputs/regression_main.csv`), and the R² of 0.73 should not be read as fit. | Real, disclosed | Limitation until v1 |
@@ -76,7 +76,7 @@ Run by Mithran Moses with Claude Code on branch `v0-pipeline`, after the fixes i
 | `run_all.py --download` stops at 01b (finding 22) | Take 01b out of the download steps (the link table is a hand-checked input now), or let 01b skip when a checked table exists. | Before v1, Nov 21 |
 | SIVB drives the regression (finding 8) | In v1, report the main spec with and without SIVB and log both in `specs_tried.md`. | v1, Nov 21 |
 | No hand check of a CAR (finding 9) | Recompute one bank's `car_0_2` (e.g. KEY) by hand in a spreadsheet from its CRSP rows and SPY, and record it in `audits/`. | v1, Nov 21 |
-| Call report amendments (finding 10) | Check the POR file's "last updated" date for the 19 filing banks; for any updated after Mar 9, 2023, find the originally filed values or flag the bank. | v1, Nov 21 |
+| Call report amendments (finding 10) | **Checked 11/21** (`dev/check_amendments.py`, `audits/amendments_check.md`): the main bank of 9 of 12 holding companies resubmitted its 12/31/2022 report after Mar 9, 2023 (all after the FDIC letter of Jul 24, 2023); 41% of all filers ≥ $1B did. The file shows when, not what changed. Next: flag in the data, a robustness row without them, and a search for as-filed values. | Lucas, Nov 24 |
 | Subsidiary sum vs. holding-company equity (finding 11) | Compare total equity and assets to the FR Y-9C for the 12 holding companies and report the gaps. | v1, Nov 21 |
 | CAR includes the sector move (finding 12) | Robustness: market model with a bank index next to SPY, logged in `specs_tried.md`. | v1 |
 | AFS-to-HTM transfer losses (finding 14) | Decided 11/14: kept as a stated limitation (`DECISIONS.md`). Robustness: main spec without ZION, `outputs/regression_drop_zion.csv` (`specs_tried.md` #5); coefficients barely move. In v1, rerun it and drop any other bank with a negative HTM loss. | Done for v0 (Mithran, 11/14) |
@@ -89,7 +89,7 @@ Run by Mithran Moses with Claude Code on branch `v0-pipeline`, after the fixes i
 | 1 | It reproduces | OK, with a caveat | `python run_all.py` rebuilds every output; full rerun matched byte for byte on 11/9, and 05–06 again on 11/14. Needs a WRDS login and two manual downloads. |
 | 2 | Every input has a provenance | OK | Source, date and how to get it again: `inputs/call_reports/README.md`, `inputs/links/README.md`, `inputs/prices/crsp/crsp_pull.provenance.txt`. |
 | 3 | Unit of observation is right | OK | One row = one bank holding company; `bhc_rssd` asserted unique; every merge uses `validate=`. |
-| 4 | No look-ahead | OK, one check open | 12/31/2022 call reports and a 2022 estimation window; survivorship handled through CRSP. Amendments after Mar 9, 2023 not yet checked (finding 10). |
+| 4 | No look-ahead | Problem, disclosed | 12/31/2022 call reports and a 2022 estimation window; survivorship handled through CRSP. But for 9 of 12 holding companies the main bank resubmitted its 12/31/2022 report after Mar 9, 2023 (finding 10, `audits/amendments_check.md`). |
 | 5 | No LLM leakage | OK | No LLM in the data or the estimates. |
 | 6 | No p-hacking | OK | `specs_tried.md` logs all 4 specs run, including the dropped 10-bank one. |
 | 7 | Magnitudes, not just stars | Not yet | With N = 12 there is nothing to interpret; v1 will report effects in CAR points per standard deviation of each measure. |
