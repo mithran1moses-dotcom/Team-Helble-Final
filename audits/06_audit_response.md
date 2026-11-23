@@ -8,7 +8,7 @@ Draft started 2026-11-23 by Lucas Koranda with Claude Code, on branch `v0-pipeli
 |---|---|---|---|
 | B1 | v1 is not on the full sample | **Open** | below |
 | B2 | Live dashboard deploys from `main`; the work is not on `main` | **Open**: needs PR #9 merged | below |
-| B3 | Call reports include resubmissions made after the event | **Partly fixed**: flag and robustness row in commit `1bb2c48`; as-filed values still to find | below |
+| B3 | Call reports include resubmissions made after the event | **Fixed at v0**: flag and robustness row (`1bb2c48`); as-filed 10-K values and robustness row (`9bec056`); full-sample values open | below |
 | B4 | The CAR hand check is still the auditor's | **Open** | below |
 | CP2 A3 | Proposal hypothesis; "today" screen | Screen fixed (`9932a41`); **hypothesis open** | below |
 
@@ -40,7 +40,7 @@ The A1–A4 fixes, the 2026Q3 screen and the B3 work exist only on PR #9 (`v0-pi
 
 **Owner:** the team (review), Mithran (deploy).
 
-## B3 · Partly fixed: resubmitted call reports are flagged, with a robustness row
+## B3 · Fixed at v0: flag, robustness rows, and as-filed values from the 10-Ks
 
 **What we changed (commit `1bb2c48`):**
 - **The date, carried into the data.** `code/02` keeps each bank's "Last Date/Time Submission Updated On" from the POR file:
@@ -54,10 +54,12 @@ The A1–A4 fixes, the 2026Q3 screen and the B3 work exist only on PR #9 (`v0-pi
 
 **Result at v0:** not estimable. After dropping SIVB (failed) and the 9 resubmitted banks, only CMA and WFC are left, fewer than the 4 coefficients. `outputs/regression_not_resubmitted.csv` says so instead of reporting a number. In v1, about 59% of filers with assets ≥ $1B were not resubmitted (`audits/amendments_check_summary.csv`), so the row will run. The README will then say whether the main coefficients move.
 
-**Still open: an as-filed uninsured measure.**
-- **Plan:** collect estimated uninsured deposits as of 12/31/2022 from each affected bank's 10-K for 2022, filed in Feb–Mar 2023. Or check whether the FR Y-9C has an equivalent item. Then rerun the main spec with that measure.
-- **Starting point:** the 9 v0 holding companies, so we can see how far the resubmitted values moved.
-- **Owner:** Lucas. **Target:** before Dec 1.
+**Added (commit `9bec056`): an as-filed uninsured measure from the 10-Ks.**
+- **Source.** Each holding company's 10-K for 2022, all filed Feb 14–28, 2023, before day 0. The values were collected by hand from SEC EDGAR, with the URL and wording for each, in `inputs/asfiled/uninsured_10k_2022q4.csv`; the method is in the README there.
+- **Scope check.** A 10-K figure stands in for the original call report only when it uses call-report scope (U.S. offices, regulatory method). It passes for CMA and SIVB, which never resubmitted: they match their call reports to within $0.1bn. WFC, also never resubmitted but with consolidated scope, is 29% off. So JPM, BAC and USB (consolidated or firmwide figures) get no as-filed value.
+- **What changed** (`code/05b_asfiled_uninsured.py` → `outputs/asfiled_uninsured_comparison.csv`). Since filing, uninsured deposits in the call report rose 27% for FITB and 13% for KEY. They moved less than 6% for PNC, TFC, WAL and ZION.
+- **Robustness row** (`code/06e_robustness_asfiled_uninsured.py`, `specs_tried.md` #11 → `outputs/regression_asfiled_uninsured.csv`). This reruns the main spec with the as-filed share where available. The uninsured slope goes from −0.15 (p = 0.89) to −0.40 (p = 0.77); the loss-ratio and size slopes barely move. The README threats list says so.
+- **Still open for v1:** the 10-K figures for the full sample, or a stated rule for banks without a same-scope figure. The FR Y-9C has no uninsured-deposit item to use instead (not checked yet). Owner: Lucas.
 
 ## B4 · Open: our own CAR hand check
 
