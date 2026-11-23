@@ -1,0 +1,27 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                car_0_2   R-squared:                       0.696
+Model:                            OLS   Adj. R-squared:                  0.566
+Method:                 Least Squares   F-statistic:                     4.340
+Date:                Mon, 23 Nov 2026   Prob (F-statistic):             0.0502
+Time:                        15:10:31   Log-Likelihood:                 8.7333
+No. Observations:                  11   AIC:                            -9.467
+Df Residuals:                       7   BIC:                            -7.875
+Df Model:                           3                                         
+Covariance Type:                  HC3                                         
+=============================================================================================
+                                coef    std err          t      P>|t|      [0.025      0.975]
+---------------------------------------------------------------------------------------------
+Intercept                    -2.3997      1.061     -2.261      0.058      -4.909       0.110
+uninsured_dep_share          -0.4029      1.353     -0.298      0.775      -3.603       2.797
+unreal_loss_to_adj_equity     0.0609      0.857      0.071      0.945      -1.965       2.086
+log_total_assets              0.1176      0.045      2.618      0.035       0.011       0.224
+==============================================================================
+Omnibus:                        6.169   Durbin-Watson:                   2.040
+Prob(Omnibus):                  0.046   Jarque-Bera (JB):                2.557
+Skew:                          -1.110   Prob(JB):                        0.278
+Kurtosis:                       3.808   Cond. No.                         498.
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity robust (HC3)

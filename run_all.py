@@ -42,10 +42,12 @@ BUILD_STEPS = [
     ["code/02_build_bank_measures.py", "2026Q3", "09302026"],  # latest quarter, for the "today" screen
     ["code/04_event_study.py"],                                # CRSP returns -> car_0_2
     ["code/05_build_analysis_sample.py"],                      # merge -> analysis_sample.csv (12 rows)
+    ["code/05b_asfiled_uninsured.py"],                         # 10-K (as-filed) vs current uninsured deposits
     ["code/06_regression.py"],                                 # regression table and scatter
     ["code/06b_robustness_drop_zion.py"],                      # robustness: main spec without ZION
     ["code/06c_robustness_with_failed.py"],                    # robustness: main spec with SIVB put back
     ["code/06d_robustness_not_resubmitted.py"],                # robustness: only reports not resubmitted after day 0
+    ["code/06e_robustness_asfiled_uninsured.py"],              # robustness: as-filed uninsured share
 ]
 
 steps = (DOWNLOAD_STEPS if "--download" in sys.argv else []) + TEST_STEPS + BUILD_STEPS

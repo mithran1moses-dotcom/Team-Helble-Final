@@ -62,3 +62,33 @@ The last row matters most for v1. The full sample will come from banks of this s
 3. **Look for as-filed values** for the largest banks: an archived copy of the FFIEC bulk file from early 2023, or the uninsured-deposit figures in each bank's 10-K for 2022, filed before or near the event. If none can be found, say so in the threats list.
 
 Owner: Lucas. Target: the Nov 24 working groups.
+
+## Follow-up 2026-11-23: as-filed uninsured deposits from the 10-Ks (instructor audit B3)
+
+The bulk file keeps no older version, so we used the next-best as-filed source: each holding company's **10-K for 2022**. All 12 were filed Feb 14–28, 2023, before day 0. The figures were collected by hand from SEC EDGAR, with the URL and the exact wording for each, in `inputs/asfiled/uninsured_10k_2022q4.csv`. The README there explains the method.
+
+**Not every 10-K figure can stand in for the call report.** The call-report item (RCON5597) covers U.S. offices at the bank level.
+- **Same scope** (they say they use the regulatory or call-report method, or cover U.S. offices only): 8 holding companies.
+- **Different scope** (firmwide, consolidated with intercompany adjustments, or including non-U.S. deposits): JPM, BAC, USB and WFC.
+
+**Calibration.** CMA and SIVB never resubmitted and have same-scope 10-K figures. Both match the call report to within $0.1bn ($45.5bn vs $45.49bn, and $151.5bn vs $151.59bn), so for these banks the 10-K reproduces the original call report.
+
+WFC never resubmitted either, but its consolidated 10-K figure is 29% below its call report. Different-scope figures therefore cannot show what a resubmission changed, so we do not use JPM's, BAC's or USB's.
+
+**Result** (`outputs/asfiled_uninsured_comparison.csv`, `code/05b_asfiled_uninsured.py`). For the 6 resubmitted banks with same-scope 10-K figures, the current call report vs the 10-K:
+
+| Bank | 10-K (Feb 2023), $bn | Current call report, $bn | Difference | Uninsured share: current → as filed |
+|---|---|---|---|---|
+| FITB | 69.4 | 88.3 | +27% | 0.522 → 0.410 |
+| KEY | 67.1 | 75.8 | +13% | 0.519 → 0.460 |
+| ZION | 38.0 (rounded) | 35.9 | −6% | 0.498 → 0.528 |
+| PNC | 200.0 | 192.3 | −4% | 0.435 → 0.453 |
+| TFC | 189.6 | 184.3 | −3% | 0.434 → 0.446 |
+| WAL | 29.5 | 29.7 | +1% | 0.550 → 0.547 |
+
+The resubmissions moved the uninsured measure a lot for two banks (FITB, KEY, both up) and little for the rest. The direction matches the FDIC letter for those two: banks were told to include deposits some had left out.
+
+**Effect on the regression** (`code/06e`, `specs_tried.md` #11, `outputs/regression_asfiled_uninsured.csv`). The test reruns the main spec (11 banks) with the as-filed share where we have it, and the current share for JPM, BAC and USB:
+- The uninsured-share slope moves from −0.15 (p = 0.89) to −0.40 (p = 0.77).
+- The loss ratio and size barely change.
+- At N = 11 neither version is evidence. In v1, `code/05b` and `06e` will need the 10-K figures for the full sample, or a rule for banks without one.
