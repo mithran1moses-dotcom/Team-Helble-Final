@@ -45,6 +45,7 @@ BUILD_STEPS = [
     ["code/06_regression.py"],                                 # regression table and scatter
     ["code/06b_robustness_drop_zion.py"],                      # robustness: main spec without ZION
     ["code/06c_robustness_with_failed.py"],                    # robustness: main spec with SIVB put back
+    ["code/06d_robustness_not_resubmitted.py"],                # robustness: only reports not resubmitted after day 0
 ]
 
 steps = (DOWNLOAD_STEPS if "--download" in sys.argv else []) + TEST_STEPS + BUILD_STEPS

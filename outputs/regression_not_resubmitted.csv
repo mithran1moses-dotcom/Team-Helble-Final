@@ -1,0 +1,2 @@
+term,n_obs,banks_used,note
+not estimated,2,"CMA, WFC","Not estimated: only 2 non-failed banks have call reports not resubmitted after Mar 9, 2023 (CMA, WFC); need at least 10."

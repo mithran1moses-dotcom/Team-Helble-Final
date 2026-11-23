@@ -7,7 +7,8 @@ Merges the three pieces into one analysis file, one row per bank holding company
     event-study CAR (stock reaction, Mar 9-13, 2023)         outputs/car_0_2.csv
 
 Output: outputs/analysis_sample.csv  (exactly 12 rows, unique bhc_rssd,
-        failed_in_window flags banks that failed during Mar 9-13, 2023)
+        failed_in_window flags banks that failed during Mar 9-13, 2023,
+        resubmitted_after_event flags call reports resubmitted after Mar 9, 2023)
 """
 
 from pathlib import Path
@@ -47,9 +48,17 @@ sample["log_total_assets"] = np.log(sample["total_assets"])
 FAILED_IN_WINDOW = ["SIVB", "SBNY"]  # SIVB seized Mar 10, SBNY closed Mar 12, 2023
 sample["failed_in_window"] = sample["ticker"].isin(FAILED_IN_WINDOW)
 
-# 6. Checks required by the team: exactly 12 rows, one per holding company,
+# 6. Flag holding companies with a bank that resubmitted its 12/31/2022 call
+#    report after day 0 (Mar 9, 2023). Our numbers are the latest version, so
+#    for these banks they may differ from what the market saw (instructor audit
+#    B3, audits/amendments_check.md). code/06d reruns the main spec without them.
+EVENT_DAY = pd.Timestamp("2023-03-09")
+sample["resubmitted_after_event"] = pd.to_datetime(sample["last_updated_max"]) > EVENT_DAY
+
+# 7. Checks required by the team: exactly 12 rows, one per holding company,
 #    every bank has a CAR, and SIVB is the only failed bank in v0.
 assert sample.loc[sample["failed_in_window"], "ticker"].tolist() == ["SIVB"]
+assert sample["resubmitted_after_event"].sum() == 9  # matches audits/amendments_check.md
 assert len(sample) == 12
 assert sample["bhc_rssd"].is_unique
 assert sample["car_0_2"].notna().all(), sample.loc[sample["car_0_2"].isna(), "ticker"].tolist()

@@ -57,8 +57,8 @@ The last row matters most for v1. The full sample will come from banks of this s
 
 ## Plan (v1)
 
-1. **Flag in the data.** Carry each bank's last-updated date into `outputs/bank_measures_2022Q4.csv` (`code/02` already reads the POR file). Add a holding-company flag, "any bank resubmitted after Mar 9, 2023", to `analysis_sample.csv`. That is a schema change, so it goes through Mithran.
-2. **Robustness row.** Rerun the main spec on banks not resubmitted after day 0, and log it in `specs_tried.md`. With ~59% of the ≥ $1B banks left, this is feasible at v1 scale.
+1. **Done 11/23: flag in the data.** Carry each bank's last-updated date into `outputs/bank_measures_2022Q4.csv` (`code/02` already reads the POR file). Add a holding-company flag, "any bank resubmitted after Mar 9, 2023", to `analysis_sample.csv`. That is a schema change, so it goes through Mithran.
+2. **Done 11/23: robustness row** (`code/06d`, `specs_tried.md` #10; not estimable at v0, 2 banks). Rerun the main spec on banks not resubmitted after day 0, and log it in `specs_tried.md`. With ~59% of the ≥ $1B banks left, this is feasible at v1 scale.
 3. **Look for as-filed values** for the largest banks: an archived copy of the FFIEC bulk file from early 2023, or the uninsured-deposit figures in each bank's 10-K for 2022, filed before or near the event. If none can be found, say so in the threats list.
 
 Owner: Lucas. Target: the Nov 24 working groups.

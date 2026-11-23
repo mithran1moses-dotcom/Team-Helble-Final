@@ -44,6 +44,11 @@ Measures (all from Schedules RC, RC-B, RC-O, in $ thousands as reported):
 Holding-company rule (DECISIONS.md): sum the dollar amounts across a BHC's
 banks first, then compute the ratios from the sums.
 
+Resubmissions (instructor audit B3): the bulk file holds the latest version of
+each report. last_updated (from the POR file) is when the bank last resubmitted
+it; last_updated_max is the latest date among a holding company's banks.
+code/05 turns that into the resubmitted_after_event flag.
+
 VERIFY every MDRM code against the FFIEC data dictionary / report form
 instructions for the period you pulled before trusting the output.
 """
@@ -128,12 +133,17 @@ def read_por(folder: Path, period: str) -> pd.DataFrame:
         "FDIC Certificate Number": "fdic_cert",
         "Financial Institution State": "state",
         "Financial Institution Filing Type": "filing_type",
+        "Last Date/Time Submission Updated On": "last_updated",
     }
     present = {k: v for k, v in keep.items() if k in por.columns}
     missing = set(keep) - set(present)
     if missing:
         print(f"  note: POR columns not found (check names): {sorted(missing)}")
-    return por[list(present)].rename(columns=present)
+    por = por[list(present)].rename(columns=present)
+    # Every bank must have a last-resubmission date: the B3 flag depends on it.
+    por["last_updated"] = pd.to_datetime(por["last_updated"].str.strip().str.strip('"'))
+    assert por["last_updated"].notna().all(), "a bank has no last-updated date"
+    return por
 
 
 def pick_first_available(df: pd.DataFrame, codes: list[str]) -> pd.Series:
@@ -210,9 +220,11 @@ def aggregate_to_bhc(banks: pd.DataFrame, link: pd.DataFrame, period: str,
 
     # Count banks behind each holding company, and how many report uninsured deposits.
     # min_count=1 keeps the sum missing when none of a BHC's banks reports a value.
+    # Also keep the latest resubmission date among each holding company's banks.
     bhc = merged.groupby(["bhc_rssd", "ticker", "bhc_name"], as_index=False).agg(
         n_banks=("bank_rssd", "count"),
         n_banks_uninsured_reported=("uninsured_deposits", "count"),
+        last_updated_max=("last_updated", "max"),
     )
     sums = merged.groupby("bhc_rssd")[DOLLAR_COLS].sum(min_count=1).reset_index()
     bhc = bhc.merge(sums, on="bhc_rssd", how="left", validate="1:1")
